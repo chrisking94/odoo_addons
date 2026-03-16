@@ -57,5 +57,6 @@ Maintainer
 .. image:: https://avatars.githubusercontent.com/u/29966935
    :alt: Chris King Github Home
    :target: https://github.com/chrisking94
+   :width: 80px
 
 This module is maintained by Chris.
