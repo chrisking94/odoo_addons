@@ -7,13 +7,13 @@ Web Widget YAML
    :align: center
    :width: 200px
 
-.. image:: https://img.shields.io
-   :target: http://www.gnu.org
+.. image:: https://img.shields.io/badge/license-%20%20GNU%20LGPLv3%20-green?style=plastic&logo=gnu
+   :target: https://www.gnu.org/licenses/lgpl-3.0.txt
    :alt: License: LGPL-3
 
-.. image:: https://img.shields.io
-   :target: https://github.com
-   :alt: OCA/web
+.. image:: https://img.shields.io/badge/github-repo-blue?logo=github
+   :target: https://github.com/chrisking94/odoo_addons/tree/main/web_widget_yaml
+   :alt: Github Repo
 
 This module provides a dedicated YAML code editor widget for Odoo form views, 
 extending the capabilities of the standard Ace Editor.
@@ -48,13 +48,13 @@ Commonly used options include:
 Bug Tracker
 ===========
 
-Bugs are tracked on `GitHub Issues <https://github.com>`_.
+Bugs are tracked on `GitHub Issues <https://github.com/chrisking94/odoo_addons/issues>`_.
 
 Maintainer
 ==========
 
-.. image:: https://odoo-community.org
-   :alt: Odoo Community Association
-   :target: https://odoo-community.org
+.. image:: https://img.shields.io/badge/maintainer-chrisking94-cyan?style=flat
+   :alt: Chris King Github Home
+   :target: https://github.com/chrisking94
 
-This module is maintained by the OCA.
+This module is maintained by Chris.
