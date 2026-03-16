@@ -40,6 +40,7 @@ This widget supports all standard Ace Editor options. You can find a complete li
 supported configuration keys and their values in the `Official Ace Configuration Wiki <https://github.com/ajaxorg/ace/wiki/Configuring-Ace>`_.
 
 Commonly used options include:
+
 * ``theme``: Visual style (e.g., ``'ace/theme/monokai'``, ``'ace/theme/chrome'``).
 * ``fontSize``: Text size in pixels (e.g., ``14``).
 * ``minLines`` / ``maxLines``: Control editor height.
@@ -53,7 +54,7 @@ Bugs are tracked on `GitHub Issues <https://github.com/chrisking94/odoo_addons/i
 Maintainer
 ==========
 
-.. image:: https://img.shields.io/badge/maintainer-chrisking94-cyan?style=flat
+.. image:: https://avatars.githubusercontent.com/u/29966935
    :alt: Chris King Github Home
    :target: https://github.com/chrisking94
 
