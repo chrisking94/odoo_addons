@@ -1,4 +1,4 @@
-# Odoo Addons by Chris King
+# Odoo Addons
 
 Welcome to this Odoo addons repository. This collection contains custom modules designed to enhance the Odoo user experience and provide developers with more flexible tools.
 
