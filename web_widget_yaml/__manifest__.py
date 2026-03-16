@@ -4,7 +4,7 @@
     'version': '15.0.1.0.0',
     'category': 'Web',
     'author': 'Chris',
-    'website': 'https://github.com/chrisking94',
+    'website': 'https://github.com/chrisking94/odoo_addons/tree/main/web_widget_yaml',
     'license': 'LGPL-3',
     'depends': ['web'],
     'data': [],
