@@ -14,6 +14,9 @@ Welcome to this Odoo addons repository. This collection contains custom modules 
 ---
 
 ## 🚀 Featured: Web Widget YAML
+
 <p align="center">
   <img src="web_widget_yaml/static/description/icon.png" width="150" alt="Web Widget YAML Logo">
 </p>
+
+If you find these modules useful, please consider giving this repository a **Star**! 🌟
