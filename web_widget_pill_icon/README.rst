@@ -65,49 +65,30 @@ CSS Utility Reference
 
 This module includes optimized **"Soft UI"** colors:
 
-.. raw:: html
+.. list-table::
+   :header-rows: 1
 
-   <table class="color-table">
-     <thead>
-       <tr>
-         <th>Class</th>
-         <th>Background (Light)</th>
-         <th>Text Color</th>
-       </tr>
-     </thead>
-     <tbody>
-       <tr>
-         <td><span style="background-color: #90EE90; padding: 2px 8px;">success</span></td>
-         <td style="background-color: #90EE90;">Soft Green</td>
-         <td style="color: darkgreen;">Dark Green</td>
-       </tr>
-       <tr>
-         <td><span style="background-color: #FFFACD; padding: 2px 8px;">warning</span></td>
-         <td style="background-color: #FFFACD;">Soft Yellow</td>
-         <td style="color: #B8860B;">Dark Gold</td>
-       </tr>
-       <tr>
-         <td><span style="background-color: #FFA07A; padding: 2px 8px;">danger</span></td>
-         <td style="background-color: #FFA07A;">Soft Red</td>
-         <td style="color: darkred;">Dark Red</td>
-       </tr>
-       <tr>
-         <td><span style="background-color: #ADD8E6; padding: 2px 8px;">info</span></td>
-         <td style="background-color: #ADD8E6;">Soft Blue</td>
-         <td style="color: darkblue;">Dark Blue</td>
-       </tr>
-       <tr>
-         <td><span style="background-color: #87CEFA; padding: 2px 8px;">primary</span></td>
-         <td style="background-color: #87CEFA;">Soft Royal Blue</td>
-         <td style="color: #00008B;">Dark Royal Blue</td>
-       </tr>
-       <tr>
-         <td><span style="background-color: #D3D3D3; padding: 2px 8px;">muted</span></td>
-         <td style="background-color: #D3D3D3;">Light Grey</td>
-         <td style="color: #696969;">Dark Grey</td>
-       </tr>
-     </tbody>
-   </table>
+   * - Class
+     - Background (Light)
+     - Text Color
+   * - ``success``
+     - Soft Green
+     - Dark Green
+   * - ``warning``
+     - Soft Yellow
+     - Dark Gold
+   * - ``danger``
+     - Soft Red
+     - Dark Red
+   * - ``info``
+     - Soft Blue
+     - Dark Blue
+   * - ``primary``
+     - Soft Royal Blue
+     - Dark Royal Blue
+   * - ``muted``
+     - Light Grey
+     - Dark Grey
 
 Bug Tracker
 ===========

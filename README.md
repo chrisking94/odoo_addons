@@ -1,5 +1,3 @@
-Here is the updated README.md for your repository. I have integrated the Web Widget Pill Icon as the new featured module and updated the table to include both addons.
-------------------------------
 Odoo Addons
 Welcome to this Odoo addons repository. This collection contains custom modules designed to enhance the Odoo user experience and provide developers with more flexible tools.
 ------------------------------
