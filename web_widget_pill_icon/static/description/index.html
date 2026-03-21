@@ -109,45 +109,80 @@
         </div>
     </div>
 
-
-    <!-- Section 4: Built-in Styles Table -->
+    <!-- Section 4: Built-in Semantic Styles Reference -->
     <div class="row oe_spaced mt-5 pt-4">
         <div class="col-12">
             <h3 class="text-center mb-4" style="font-weight: 700;">Built-in Semantic Styles Reference</h3>
-            <div class="table-responsive shadow-sm" style="border-radius: 15px; overflow: hidden; background: white;">
+
+            <!-- Main Container -->
+            <div style="border: 1px solid #dee2e6; border-radius: 15px; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+
+                <!-- Reinforced Header using DIVs for App Store Safety -->
+                <div class="row no-gutters text-white font-weight-bold"
+                     style="background-color: #714B67; padding: 15px 0; border-radius: 14px 14px 0 0;">
+                    <div class="col-4 text-center">Option Value Mapping</div>
+                    <div class="col-4 text-center">Standard Style</div>
+                    <div class="col-4 text-center">Outline Style</div>
+                </div>
+
+                <!-- Table Body -->
                 <table class="table table-borderless mb-0" style="text-align: center;">
-                    <thead>
-                        <tr style="background: #714B67; color: white;">
-                            <th class="py-3">Option Value Mapping</th>
-                            <th class="py-3">Standard Style</th>
-                            <th class="py-3">Outline Style</th>
-                        </tr>
-                    </thead>
                     <tbody style="vertical-align: middle;">
+                        <!-- SUCCESS -->
                         <tr style="border-bottom: 1px solid #f1f1f1;">
-                            <td class="font-weight-bold">fa-check-circle success</td>
-                            <td><span style="background-color: #e6f4ea; color: #1e7e34; border: 1px solid #c3e6cb; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-check-circle" style="margin-right: 5px;"></i> Success</span></td>
-                            <td><span style="background-color: transparent; color: #1e7e34; border: 1px solid currentColor; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-check-circle" style="margin-right: 5px;"></i> Success</span></td>
+                            <td class="col-4 font-weight-bold">fa-check-circle success</td>
+                            <td class="col-4">
+                                <span style="background-color: #e6f4ea; color: #1e7e34; border: 1px solid #c3e6cb; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;">
+                                    <i class="fa fa-check-circle mr-1"></i> Success
+                                </span>
+                            </td>
+                            <td class="col-4">
+                                <span style="background-color: transparent; color: #1e7e34; border: 1px solid currentColor; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;">
+                                    <i class="fa fa-check-circle mr-1"></i> Success
+                                </span>
+                            </td>
                         </tr>
+                        <!-- WARNING -->
                         <tr style="border-bottom: 1px solid #f1f1f1;">
-                            <td class="font-weight-bold">fa-warning warning</td>
-                            <td><span style="background-color: #fdf6b2; color: #857005; border: 1px solid #fce96a; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-warning" style="margin-right: 5px;"></i> Warning</span></td>
-                            <td><span style="background-color: transparent; color: #857005; border: 1px solid currentColor; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-warning" style="margin-right: 5px;"></i> Warning</span></td>
+                            <td class="col-4 font-weight-bold">fa-warning warning</td>
+                            <td class="col-4">
+                                <span style="background-color: #fdf6b2; color: #857005; border: 1px solid #fce96a; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;">
+                                    <i class="fa fa-warning mr-1"></i> Warning
+                                </span>
+                            </td>
+                            <td class="col-4">
+                                <span style="background-color: transparent; color: #857005; border: 1px solid currentColor; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;">
+                                    <i class="fa fa-warning mr-1"></i> Warning
+                                </span>
+                            </td>
                         </tr>
+                        <!-- DANGER -->
                         <tr style="border-bottom: 1px solid #f1f1f1;">
-                            <td class="font-weight-bold">fa-trash danger</td>
-                            <td><span style="background-color: #fde8e8; color: #c81e1e; border: 1px solid #f8b4b4; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-trash" style="margin-right: 5px;"></i> Danger</span></td>
-                            <td><span style="background-color: transparent; color: #c81e1e; border: 1px solid currentColor; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-trash" style="margin-right: 5px;"></i> Danger</span></td>
+                            <td class="col-4 font-weight-bold">fa-trash danger</td>
+                            <td class="col-4">
+                                <span style="background-color: #fde8e8; color: #c81e1e; border: 1px solid #f8b4b4; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;">
+                                    <i class="fa fa-trash mr-1"></i> Danger
+                                </span>
+                            </td>
+                            <td class="col-4">
+                                <span style="background-color: transparent; color: #c81e1e; border: 1px solid currentColor; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;">
+                                    <i class="fa fa-trash mr-1"></i> Danger
+                                </span>
+                            </td>
                         </tr>
-                        <tr style="border-bottom: 1px solid #f1f1f1;">
-                            <td class="font-weight-bold">fa-star primary</td>
-                            <td><span style="background-color: #cfe2ff; color: #084298; border: 1px solid #b6d4fe; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-star" style="margin-right: 5px;"></i> Primary</span></td>
-                            <td><span style="background-color: transparent; color: #084298; border: 1px solid currentColor; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-star" style="margin-right: 5px;"></i> Primary</span></td>
-                        </tr>
+                        <!-- MUTED (Bottom Row Rounded) -->
                         <tr>
-                            <td class="font-weight-bold">fa-minus-circle muted</td>
-                            <td><span style="background-color: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-minus-circle" style="margin-right: 5px;"></i> Muted</span></td>
-                            <td><span style="background-color: transparent; color: #6c757d; border: 1px solid currentColor; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-minus-circle" style="margin-right: 5px;"></i> Muted</span></td>
+                            <td class="col-4 font-weight-bold" style="border-bottom-left-radius: 15px;">fa-minus-circle muted</td>
+                            <td class="col-4">
+                                <span style="background-color: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;">
+                                    <i class="fa fa-minus-circle mr-1"></i> Muted
+                                </span>
+                            </td>
+                            <td class="col-4" style="border-bottom-right-radius: 15px;">
+                                <span style="background-color: transparent; color: #6c757d; border: 1px solid currentColor; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;">
+                                    <i class="fa fa-minus-circle mr-1"></i> Muted
+                                </span>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -158,28 +193,31 @@
     <!-- XML Configuration & Icons -->
     <div class="row oe_spaced mt-5">
         <div class="col-md-7">
-            <div style="background: #282c34; border-radius: 15px; padding: 25px; height: 100%; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);">
-                <h4 style="color: #abb2bf; margin-bottom: 15px; font-weight: 700;"><i class="fa fa-code mr-2"></i> XML Configuration</h4>
-                <div style="background: #1e1e1e; padding: 15px; border-radius: 8px; border-left: 4px solid #c678dd;">
-                    <pre style="margin: 0; color: #dcdcdc; font-size: 0.9rem;">
-<span style="color: #569cd6;">&lt;field</span> <span style="color: #9cdcfe;">name</span>=<span style="color: #ce9178;">"status"</span>
-       <span style="color: #9cdcfe;">widget</span>=<span style="color: #ce9178;">"pill_icon"</span>
-       <span style="color: #9cdcfe;">options</span>=<span style="color: #ce9178;">"{
-           'base': 'pill outline sm',
-           'values': {
-               'done': 'fa-check success',
-               'error': 'fa-exclamation danger'
-           }
-       }"</span><span style="color: #569cd6;">/&gt;</span></pre>
+            <!-- Added !important and explicit background-color to fight Store CSS -->
+            <div style="background-color: #282c34 !important; border-radius: 15px; padding: 25px; height: 100%; border: 1px solid #181a1f;">
+                <h4 style="color: #abb2bf !important; margin-bottom: 15px; font-weight: 700;"><i class="fa fa-code mr-2"></i> XML Configuration</h4>
+
+                <div style="background-color: #1e1e1e !important; padding: 15px; border-radius: 8px; border-left: 4px solid #c678dd; overflow-x: auto;">
+                    <pre style="margin: 0; color: #dcdcdc !important; font-size: 0.9rem; background: transparent !important; border: none !important;">
+    <span style="color: #569cd6 !important;">&lt;field</span> <span style="color: #9cdcfe !important;">name</span>=<span style="color: #ce9178 !important;">"status"</span>
+           <span style="color: #9cdcfe !important;">widget</span>=<span style="color: #ce9178 !important;">"pill_icon"</span>
+           <span style="color: #9cdcfe !important;">options</span>=<span style="color: #ce9178 !important;">"{
+               'base': 'pill outline sm',
+               'values': {
+                   'done': 'fa-check success',
+                   'error': 'fa-exclamation danger'
+               }
+           }"</span><span style="color: #569cd6 !important;">/&gt;</span></pre>
                 </div>
             </div>
         </div>
+
         <div class="col-md-5 text-center">
-            <div style="background: #e1effe; border-radius: 15px; padding: 25px; height: 100%; border: 2px solid #a4cafe;">
-                <i class="fa fa-flag fa-2x mb-3" style="color: #1e429f;"></i>
-                <h5 style="font-weight: 700; color: #1e429f;">Icons at Hand</h5>
+            <div style="background-color: #e1effe !important; border-radius: 15px; padding: 25px; height: 100%; border: 2px solid #a4cafe !important;">
+                <i class="fa fa-flag fa-2x mb-3" style="color: #1e429f !important;"></i>
+                <h5 style="font-weight: 700; color: #1e429f !important;">Icons at Hand</h5>
                 <p class="small text-muted">Supports all compatible icons. Find your perfect match here:</p>
-                <a href="https://fontawesome.com/v4/icons/" target="_blank" class="btn btn-primary" style="background-color: #1e429f; border: none; border-radius: 50px;">
+                <a href="https://fontawesome.com/v4/icons/" target="_blank" class="btn btn-primary" style="background-color: #1e429f !important; border: none; border-radius: 50px; color: white !important;">
                     <i class="fa fa-external-link mr-2"></i> Icon List Reference
                 </a>
             </div>
