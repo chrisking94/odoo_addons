@@ -65,28 +65,30 @@ CSS Utility Reference
 
 This module includes optimized **"Soft UI"** colors:
 
-+-----------+-----------------------+-----------------------+
+.. list-table::
+   :header-rows: 1
 
-| Class     | Background (Light)    | Text Color            |
-+===========+=======================+=======================+
-
-| success   | Soft Green            | Dark Green            |
-+-----------+-----------------------+-----------------------+
-
-| warning   | Soft Yellow           | Dark Gold             |
-+-----------+-----------------------+-----------------------+
-
-| danger    | Soft Red              | Dark Red              |
-+-----------+-----------------------+-----------------------+
-
-| info      | Soft Blue             | Dark Blue             |
-+-----------+-----------------------+-----------------------+
-
-| primary   | Soft Royal Blue       | Dark Royal Blue       |
-+-----------+-----------------------+-----------------------+
-
-| muted     | Light Grey            | Dark Grey             |
-+-----------+-----------------------+-----------------------+
+   * - Class
+     - Background (Light)
+     - Text Color
+   * - ``success``
+     - Soft Green
+     - Dark Green
+   * - ``warning``
+     - Soft Yellow
+     - Dark Gold
+   * - ``danger``
+     - Soft Red
+     - Dark Red
+   * - ``info``
+     - Soft Blue
+     - Dark Blue
+   * - ``primary``
+     - Soft Royal Blue
+     - Dark Royal Blue
+   * - ``muted``
+     - Light Grey
+     - Dark Grey
 
 Bug Tracker
 ===========
