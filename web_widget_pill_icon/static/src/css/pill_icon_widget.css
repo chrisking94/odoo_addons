@@ -3,6 +3,14 @@
     background-color: transparent !important;
 }
 
+.o_pill_icon_widget {
+    display: inline-flex !important; /* This is the fix for the width issue */
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    max-width: 100%;
+}
+
 /* --- The "Pill" Logic --- */
 .o_pill_icon_widget.pill {
     padding: 2px 10px;
