@@ -45,28 +45,58 @@
 
     <!-- Section 2: Style Variations -->
     <div class="row oe_spaced mt-5 pt-4" style="border-top: 1px solid #eee;">
-        <div class="col-md-7">
+        <div class="col-12 text-center mb-4">
             <h3 style="font-weight: 700; color: #714B67;">Flexible Style Variations</h3>
-            <p class="mt-3" style="color: #666;">Mix and match <strong>base</strong> and <strong>semantic</strong> classes to create the perfect look. Supports solid colors, outlines, and different sizes (sm, lg) to fit any UI requirement.</p>
-            <div class="mt-4 p-3 bg-white shadow-sm" style="border-radius: 15px; border-left: 5px solid #017e84;">
-                <p><strong>Available Display Options:</strong></p>
-                <ul class="small text-muted">
-                    <li>Solid Semantic Pills</li>
-                    <li>Transparent Outline Style</li>
-                    <li>Size Modifiers (Small & Large)</li>
-                </ul>
-            </div>
+            <p class="text-muted">Mix and match base and semantic classes to create the perfect look for any field type.</p>
         </div>
-        <div class="col-md-5 d-flex justify-content-center">
-            <div class="text-center" style="max-width: 264px;">
-                <div style="border: 2px solid #714B67; border-radius: 10px; overflow: hidden; background: white; padding: 5px;">
-                    <img src="ui_variations.png" alt="UI Variations" class="img-fluid" style="width: 264px; height: 368px; object-fit: cover;">
-                </div>
+        <div class="col-12 d-flex justify-content-center">
+            <div style="border: 2px solid #714B67; border-radius: 15px; overflow: hidden; background: white; padding: 10px; max-width: 855px; width: 100%;">
+                <img src="ui_variations.png" alt="UI Variations" class="img-fluid" style="width: 855px; height: 452px; object-fit: contain;">
             </div>
         </div>
     </div>
 
-    <!-- Section 3: Built-in Styles Table -->
+    <!-- Section 3: Configuration Demonstration -->
+    <div class="row oe_spaced mt-5 pt-4">
+        <div class="col-12">
+            <h3 class="text-center mb-4" style="font-weight: 700;">Configuration Demonstration</h3>
+            <div class="table-responsive shadow-sm" style="border-radius: 15px; overflow: hidden; background: white;">
+                <table class="table table-borderless mb-0" style="text-align: center;">
+                    <thead style="background: #017e84; color: white;">
+                        <tr>
+                            <th class="py-3">Base Options</th>
+                            <th class="py-3">Value Options</th>
+                            <th class="py-3">Resulting Preview</th>
+                        </tr>
+                    </thead>
+                    <tbody style="vertical-align: middle;">
+                        <tr style="border-bottom: 1px solid #f1f1f1;">
+                            <td><code style="color: #e83e8c;">'pill'</code></td>
+                            <td><code style="color: #714B67;">'fa-check success'</code></td>
+                            <td><span style="background-color: #e6f4ea; color: #1e7e34; border: 1px solid #c3e6cb; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-check mr-1"></i> Done</span></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f1f1f1;">
+                            <td><code style="color: #e83e8c;">'pill outline'</code></td>
+                            <td><code style="color: #714B67;">'fa-warning warning'</code></td>
+                            <td><span style="background-color: transparent; color: #857005; border: 1px solid currentColor; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-warning mr-1"></i> Pending</span></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f1f1f1;">
+                            <td><code style="color: #e83e8c;">'pill sm'</code></td>
+                            <td><code style="color: #714B67;">'fa-trash danger'</code></td>
+                            <td><span style="background-color: #fde8e8; color: #c81e1e; border: 1px solid #f8b4b4; padding: 1px 6px; border-radius: 20px; font-size: 11px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-trash mr-1"></i> Delete</span></td>
+                        </tr>
+                        <tr>
+                            <td><code style="color: #e83e8c;">'pill lg'</code></td>
+                            <td><code style="color: #714B67;">'fa-info-circle info'</code></td>
+                            <td><span style="background-color: #e1effe; color: #1e429f; border: 1px solid #a4cafe; padding: 4px 14px; border-radius: 20px; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-info-circle mr-1"></i> Details</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 4: Built-in Styles Table -->
     <div class="row oe_spaced mt-5 pt-4">
         <div class="col-12">
             <h3 class="text-center mb-4" style="font-weight: 700;">Built-in Semantic Styles Reference</h3>
@@ -80,31 +110,26 @@
                         </tr>
                     </thead>
                     <tbody style="vertical-align: middle;">
-                        <!-- SUCCESS -->
                         <tr style="border-bottom: 1px solid #f1f1f1;">
                             <td class="font-weight-bold">fa-check-circle success</td>
                             <td><span style="background-color: #e6f4ea; color: #1e7e34; border: 1px solid #c3e6cb; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-check-circle" style="margin-right: 5px;"></i> Success</span></td>
                             <td><span style="background-color: transparent; color: #1e7e34; border: 1px solid currentColor; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-check-circle" style="margin-right: 5px;"></i> Success</span></td>
                         </tr>
-                        <!-- WARNING -->
                         <tr style="border-bottom: 1px solid #f1f1f1;">
                             <td class="font-weight-bold">fa-warning warning</td>
                             <td><span style="background-color: #fdf6b2; color: #857005; border: 1px solid #fce96a; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-warning" style="margin-right: 5px;"></i> Warning</span></td>
                             <td><span style="background-color: transparent; color: #857005; border: 1px solid currentColor; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-warning" style="margin-right: 5px;"></i> Warning</span></td>
                         </tr>
-                        <!-- DANGER -->
                         <tr style="border-bottom: 1px solid #f1f1f1;">
                             <td class="font-weight-bold">fa-trash danger</td>
                             <td><span style="background-color: #fde8e8; color: #c81e1e; border: 1px solid #f8b4b4; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-trash" style="margin-right: 5px;"></i> Danger</span></td>
                             <td><span style="background-color: transparent; color: #c81e1e; border: 1px solid currentColor; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-trash" style="margin-right: 5px;"></i> Danger</span></td>
                         </tr>
-                        <!-- PRIMARY -->
                         <tr style="border-bottom: 1px solid #f1f1f1;">
                             <td class="font-weight-bold">fa-star primary</td>
                             <td><span style="background-color: #cfe2ff; color: #084298; border: 1px solid #b6d4fe; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-star" style="margin-right: 5px;"></i> Primary</span></td>
                             <td><span style="background-color: transparent; color: #084298; border: 1px solid currentColor; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-star" style="margin-right: 5px;"></i> Primary</span></td>
                         </tr>
-                        <!-- MUTED -->
                         <tr>
                             <td class="font-weight-bold">fa-minus-circle muted</td>
                             <td><span style="background-color: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; line-height: 1;"><i class="fa fa-minus-circle" style="margin-right: 5px;"></i> Muted</span></td>
@@ -140,7 +165,7 @@
                 <i class="fa fa-flag fa-2x mb-3" style="color: #1e429f;"></i>
                 <h5 style="font-weight: 700; color: #1e429f;">Icons at Hand</h5>
                 <p class="small text-muted">Supports all compatible icons. Find your perfect match here:</p>
-                <a href="https://fontawesome.com" target="_blank" class="btn btn-primary" style="background-color: #1e429f; border: none; border-radius: 50px;">
+                <a href="https://fontawesome.com/v4/icons/" target="_blank" class="btn btn-primary" style="background-color: #1e429f; border: none; border-radius: 50px;">
                     <i class="fa fa-external-link mr-2"></i> Icon List Reference
                 </a>
             </div>
@@ -151,7 +176,7 @@
     <div class="row oe_spaced mt-5 py-4 text-center">
         <div class="col-12">
             <p class="mb-4" style="font-size: 1.1rem; color: #666;">If this widget saved your time, please consider giving us a Star on GitHub.</p>
-            <a href="https://github.com" target="_blank" class="btn btn-dark btn-lg px-5" style="border-radius: 50px; background-color: #24292e;">
+            <a href="https://github.com/chrisking94/odoo_addons" target="_blank" class="btn btn-dark btn-lg px-5" style="border-radius: 50px; background-color: #24292e;">
                 <i class="fa fa-github mr-2"></i> Star on GitHub
             </a>
         </div>

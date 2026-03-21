@@ -57,7 +57,7 @@ The widget accepts two main keys in the ``options`` dictionary:
     * ``sm`` / ``lg``: Adjusts the scale of the pill.
 
 2. **values** (Dictionary): A mapping where the **Key** is the field's raw value and the **Value** is a string containing:
-    * **Icons**: Any FontAwesome 4.7 class (e.g., ``fa-star``, ``fa-pencil``).
+    * **Icons**: FontAwesome class (e.g., ``fa-star``, ``fa-pencil``).
     * **Colors**: Semantic classes like ``success``, ``warning``, ``danger``, ``info``, ``primary``, or ``muted``.
 
 CSS Utility Reference
