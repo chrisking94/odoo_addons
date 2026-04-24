@@ -3,10 +3,14 @@
 # @Author       : Chris
 # @Description  :
 import json
+import logging
 
 from odoo import http
 from odoo.http import request, Root, HttpRequest
 from werkzeug.wrappers import Response as WerkzeugResponse
+
+
+_logger = logging.getLogger(__name__)
 
 
 # ---- Monkey Patch Start ----
@@ -92,7 +96,7 @@ class McpController(http.Controller):
             
         except Exception as e:
             import traceback
-            print(f"[MCP] Error: {e}\n{traceback.format_exc()}")
+            _logger.error(f"MCP Error: {e}\n{traceback.format_exc()}")
             
             return self._json_response({
                 "jsonrpc": "2.0",
@@ -106,11 +110,10 @@ class McpController(http.Controller):
 
     def _handle_notification(self, method, params):
         """Handle JSON-RPC notifications (no response required)."""
-        print(f"[MCP] Received notification: {method}")
+        _logger.debug(f"MCP notification received: {method}")
         
-        # Currently we just log notifications, but you can add logic here
         if method == 'notifications/initialized':
-            print("[MCP] Client initialization complete")
+            _logger.debug("MCP client initialization complete")
 
     def _json_response(self, data, status=200):
         """Create JSON response with CORS headers."""
@@ -137,6 +140,8 @@ class McpController(http.Controller):
     
     def _handle_initialize(self, params):
         """Handle initialize request."""
+        _logger.debug(f"MCP initialize called with params: {params}")
+        
         return {
             "protocolVersion": "2025-03-26",
             "capabilities": {"tools": {}},
@@ -166,13 +171,15 @@ class McpController(http.Controller):
                 except:
                     continue
         
-        print(f"[MCP] Found {len(tools)} tools")
+        _logger.debug(f"MCP found {len(tools)} tools")
         return {"tools": tools}
     
     def _handle_call_tool(self, params):
         """Handle tools/call request."""
         name = params.get('name')
         arguments = params.get('arguments', {})
+        
+        _logger.debug(f"MCP calling tool: {name} with args: {arguments}")
         
         try:
             model_name, method_name = name.split(':')
@@ -188,7 +195,7 @@ class McpController(http.Controller):
             
         except Exception as e:
             import traceback
-            print(f"[MCP] Tool error: {e}\n{traceback.format_exc()}")
+            _logger.error(f"MCP tool execution error: {e}\n{traceback.format_exc()}")
             
             return {
                 "content": [{"type": "text", "text": f"Error: {str(e)}"}],
