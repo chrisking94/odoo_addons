@@ -9,11 +9,11 @@ from odoo import http
 from odoo.http import request, Root, HttpRequest
 from werkzeug.wrappers import Response as WerkzeugResponse
 
-
 _logger = logging.getLogger(__name__)
 
 
 # ---- Monkey Patch Start ----
+
 # Odoo Controller is strict to request type and endpoint type.
 # We need to make a monkey patch to loose this restriction for mcp endpoint.
 # This patch wrap all request to mcp endpoint as HTTPRequest, then controller will handle http request manually,
@@ -28,6 +28,7 @@ def _patched_get_request(self, httprequest):
 
 
 Root.get_request = _patched_get_request
+
 # ---- Monkey Patch End ---
 
 
@@ -37,10 +38,17 @@ class McpController(http.Controller):
     def mcp_endpoint(self, **kwargs):
         """
         Unified Streamable HTTP endpoint for MCP protocol.
-        
+
         GET  → SSE stream for server notifications
         POST → JSON-RPC message handling
+
+        Authentication:
+        - If auth_api_key is installed: supports API key via 'Api-Key' header
+        - Otherwise: runs with admin privileges (development mode)
         """
+        # Try to authenticate with API key if available
+        self._try_api_key_auth()
+
         if request.httprequest.method == 'GET':
             return self._handle_sse_stream()
         elif request.httprequest.method == 'POST':
@@ -48,8 +56,40 @@ class McpController(http.Controller):
         else:
             return WerkzeugResponse('Method Not Allowed', status=405)
 
+    def _try_api_key_auth(self):
+        """
+        Attempt API key authentication using auth_api_key's standard method.
+        Falls back to admin user if module not installed or no key provided.
+        """
+        try:
+            # Check if auth_api_key module provides the authentication method
+            ir_http = request.env['ir.http']
+
+            if hasattr(ir_http, '_auth_method_api_key'):
+                # Call the standard auth method
+                ir_http._auth_method_api_key()
+                _logger.debug(f"MCP authenticated via API key for user ID: {request.uid}")
+            else:
+                # Module not installed, use admin with warning
+                if not hasattr(request, '_mcp_auth_warning_logged'):
+                    _logger.warning(
+                        "MCP Security Warning: Running with sudo() privileges. "
+                        "For production use, please install 'auth_api_key' module for proper authentication. "
+                        "Install from: https://apps.odoo.com/apps/modules/browse?search=auth_api_key"
+                    )
+                    request._mcp_auth_warning_logged = True
+
+                # Set to admin user
+                request.uid = request.env.ref('base.user_admin').id
+                request._env = None
+
+        except Exception as e:
+            _logger.error(f"MCP authentication error: {e}")
+            raise e
+
     def _handle_sse_stream(self):
         """Handle GET request - establish SSE stream."""
+
         def stream():
             yield "event: endpoint\ndata: /mcp\n\n"
 
@@ -69,18 +109,18 @@ class McpController(http.Controller):
         try:
             payload = json.loads(request.httprequest.get_data(as_text=True))
             method = payload.get('method')
-            
+
             # Check if this is a notification (no id field)
             is_notification = payload.get('id') is None
-            
+
             # Handle notifications - no response needed
             if is_notification and method.startswith('notifications/'):
                 self._handle_notification(method, payload.get('params', {}))
                 return WerkzeugResponse('', status=202)
-            
+
             # Handle regular requests
             result = self._process_mcp_method(method, payload.get('params', {}))
-            
+
             return self._json_response({
                 "jsonrpc": "2.0",
                 "id": payload.get('id'),
@@ -93,11 +133,11 @@ class McpController(http.Controller):
                 "id": None,
                 "error": {"code": -32700, "message": "Parse error"}
             }, 400)
-            
+
         except Exception as e:
             import traceback
             _logger.error(f"MCP Error: {e}\n{traceback.format_exc()}")
-            
+
             return self._json_response({
                 "jsonrpc": "2.0",
                 "id": payload.get('id') if 'payload' in locals() else None,
@@ -111,7 +151,7 @@ class McpController(http.Controller):
     def _handle_notification(self, method, params):
         """Handle JSON-RPC notifications (no response required)."""
         _logger.debug(f"MCP notification received: {method}")
-        
+
         if method == 'notifications/initialized':
             _logger.debug("MCP client initialization complete")
 
@@ -131,17 +171,17 @@ class McpController(http.Controller):
             'tools/list': self._handle_list_tools,
             'tools/call': self._handle_call_tool,
         }
-        
+
         handler = handlers.get(method)
         if not handler:
             raise Exception(f"Method not found: {method}")
-        
+
         return handler(params)
-    
+
     def _handle_initialize(self, params):
         """Handle initialize request."""
         _logger.debug(f"MCP initialize called with params: {params}")
-        
+
         return {
             "protocolVersion": "2025-03-26",
             "capabilities": {"tools": {}},
@@ -150,16 +190,16 @@ class McpController(http.Controller):
                 "version": "1.0.0"
             }
         }
-    
+
     def _handle_list_tools(self, params):
         """Handle tools/list request."""
         tools = []
-        
+
         for model_name, model_obj in request.env.registry.models.items():
             for attr_name in dir(model_obj):
                 if attr_name.startswith('_'):
                     continue
-                    
+
                 try:
                     method = getattr(model_obj, attr_name)
                     if callable(method) and getattr(method, '_is_mcp_tool', False):
@@ -170,33 +210,34 @@ class McpController(http.Controller):
                         })
                 except:
                     continue
-        
+
         _logger.debug(f"MCP found {len(tools)} tools")
         return {"tools": tools}
-    
+
     def _handle_call_tool(self, params):
         """Handle tools/call request."""
         name = params.get('name')
         arguments = params.get('arguments', {})
-        
+
         _logger.debug(f"MCP calling tool: {name} with args: {arguments}")
-        
+
         try:
             model_name, method_name = name.split(':')
-            model = request.env[model_name].sudo()
+            # Use the already authenticated request.env
+            model = request.env[model_name]
             result = getattr(model, method_name)(**arguments)
-            
+
             return {
                 "content": [{
                     "type": "text",
                     "text": json.dumps(result) if not isinstance(result, str) else result
                 }]
             }
-            
+
         except Exception as e:
             import traceback
             _logger.error(f"MCP tool execution error: {e}\n{traceback.format_exc()}")
-            
+
             return {
                 "content": [{"type": "text", "text": f"Error: {str(e)}"}],
                 "isError": True

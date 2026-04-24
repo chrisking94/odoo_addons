@@ -15,6 +15,11 @@
         - Zero configuration required
         - Production-ready with error handling and logging
         
+        Security:
+        - Optional auth_api_key support for secure API authentication
+        - Without auth_api_key: runs with admin privileges (development only)
+        - With auth_api_key: uses API key-based user authentication (production recommended)
+        
         Perfect for building AI-powered chatbots, automated workflows,
         intelligent assistants, and LLM integrations with your Odoo ERP.
     """,
