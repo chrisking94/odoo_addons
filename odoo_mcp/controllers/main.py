@@ -64,11 +64,18 @@ class McpController(http.Controller):
         """Handle POST request - process JSON-RPC messages."""
         try:
             payload = json.loads(request.httprequest.get_data(as_text=True))
+            method = payload.get('method')
             
-            result = self._process_mcp_method(
-                payload.get('method'),
-                payload.get('params', {})
-            )
+            # Check if this is a notification (no id field)
+            is_notification = payload.get('id') is None
+            
+            # Handle notifications - no response needed
+            if is_notification and method.startswith('notifications/'):
+                self._handle_notification(method, payload.get('params', {}))
+                return WerkzeugResponse('', status=202)
+            
+            # Handle regular requests
+            result = self._process_mcp_method(method, payload.get('params', {}))
             
             return self._json_response({
                 "jsonrpc": "2.0",
@@ -96,6 +103,14 @@ class McpController(http.Controller):
                     "data": traceback.format_exc()
                 }
             }, 500)
+
+    def _handle_notification(self, method, params):
+        """Handle JSON-RPC notifications (no response required)."""
+        print(f"[MCP] Received notification: {method}")
+        
+        # Currently we just log notifications, but you can add logic here
+        if method == 'notifications/initialized':
+            print("[MCP] Client initialization complete")
 
     def _json_response(self, data, status=200):
         """Create JSON response with CORS headers."""
