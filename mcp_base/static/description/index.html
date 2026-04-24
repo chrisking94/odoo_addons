@@ -13,7 +13,7 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="Odoo MCP Framework - AI Integration for Odoo ERP">
     <meta property="og:description" content="Connect Odoo to AI Agents with One Line of Code. Implement Model Context Protocol for seamless LLM integration.">
-    <meta property="og:url" content="https://github.com/chrisking94/odoo_addons/tree/main/odoo_mcp">
+    <meta property="og:url" content="https://github.com/chrisking94/odoo_addons/tree/main/mcp_base">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
@@ -372,7 +372,7 @@ def search_customers(self, name: str):
                 
                 <div class="code-example">
                     <div class="code-label">Python</div>
-<code>from odoo.addons.odoo_mcp import mcp_tool
+<code>from odoo.addons.mcp_base import mcp_tool
 from odoo import models
 
 class ResPartner(models.Model):

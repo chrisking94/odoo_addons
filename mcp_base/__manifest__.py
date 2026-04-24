@@ -25,7 +25,7 @@
     """,
     'category': 'Tools/AI',
     'author': 'Chris',
-    'website': 'https://github.com/chrisking94/odoo_addons/tree/main/odoo_mcp',
+    'website': 'https://github.com/chrisking94/odoo_addons/tree/main/mcp_base',
     'license': 'LGPL-3',
     'depends': ['base'],
     'external_dependencies': {

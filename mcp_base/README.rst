@@ -2,7 +2,7 @@
 Odoo MCP Framework
 =================
 
-.. image:: /odoo_mcp/static/description/icon.png
+.. image:: /mcp_base/static/description/icon.png
    :alt: Odoo MCP Framework Logo
    :align: center
    :width: 200px
@@ -12,7 +12,7 @@ Odoo MCP Framework
    :alt: License: LGPL-3
 
 .. image:: https://img.shields.io/badge/github-repo-blue?logo=github
-   :target: https://github.com/chrisking94/odoo_addons/tree/main/odoo_mcp
+   :target: https://github.com/chrisking94/odoo_addons/tree/main/mcp_base
    :alt: Github Repo
 
 **Connect Odoo ERP to AI Agents with One Line of Code**
@@ -53,7 +53,7 @@ Add the decorator to any model method you want to expose:
 
 .. code-block:: python
 
-    from odoo.addons.odoo_mcp import mcp_tool  # IDE might complain package missing, but don't worry, odoo can find it.
+    from odoo.addons.mcp_base import mcp_tool  # IDE might complain package missing, but don't worry, odoo can find it.
     from odoo import models
 
     class ResPartner(models.Model):
@@ -159,7 +159,7 @@ You'll see a warning in logs on first request:
 
 .. code-block:: text
 
-    WARNING odoo.addons.odoo_mcp.controllers.main: MCP Security Warning: Running with sudo() privileges. 
+    WARNING odoo.addons.mcp_base.controllers.main: MCP Security Warning: Running with sudo() privileges. 
     For production use, please install 'auth_api_key' module for proper authentication.
 
 With auth_api_key (Production Mode - Strongly Recommended)
@@ -258,7 +258,7 @@ Enable debug logging to see MCP activity:
 
 .. code-block:: bash
 
-    odoo-bin --log-handler=odoo.addons.odoo_mcp.controllers.main:DEBUG
+    odoo-bin --log-handler=odoo.addons.mcp_base.controllers.main:DEBUG
 
 This will log:
 * Received MCP methods and parameters

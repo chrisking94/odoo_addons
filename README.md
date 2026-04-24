@@ -9,7 +9,7 @@ This collection contains custom modules designed to enhance the Odoo user experi
 
 | Module Name          | Description                                                                 | Link                                  |
 |----------------------|-----------------------------------------------------------------------------|---------------------------------------|
-| Odoo MCP Framework   | [NEW] Transform Odoo into AI-ready MCP Server with one decorator.           | [View Module](./odoo_mcp)             |
+| MCP Framework        | [NEW] Transform Odoo into AI-ready MCP Server with one decorator.           | [View Module](./mcp_base)             |
 | Web Widget Pill Icon | Dynamic icons & semantic colors for any field via XML options.              | [View Module](./web_widget_pill_icon) |
 | Web Widget YAML      | Advanced YAML editor with customizable Ace editor options.                  | [View Module](./web_widget_yaml)      |
 
@@ -30,7 +30,7 @@ The **Odoo MCP Framework** transforms your Odoo instance into a Model Context Pr
 ### Quick Example:
 
 ```python
-from odoo.addons.odoo_mcp import mcp_tool
+from odoo.addons.mcp_base import mcp_tool
 
 @mcp_tool(description="Search customers by name")
 def search_customers(self, name: str):
