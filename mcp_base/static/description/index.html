@@ -21,13 +21,13 @@
     <!-- Quick Example -->
     <div class="row oe_spaced mt-4">
         <div class="col-12">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
-                <h3 style="color: #ffffff !important; margin-bottom: 20px; text-align: center;"><i class="fa fa-magic mr-2"></i>One Decorator, AI Ready</h3>
-                <div style="background-color: #1e1e1e !important; padding: 20px; border-radius: 8px; overflow-x: auto; border: 1px solid #333 !important;">
-                    <pre style="margin: 0 !important; color: #dcdcdc !important; font-size: 0.95rem !important; background: transparent !important; border: none !important; font-family: 'Courier New', monospace !important;">
-<span style="color: #ffd700 !important; font-weight: bold;">@mcp_tool</span>(description="Search customers by name")
+            <div style="background-color: #667eea; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+                <h3 style="color: #ffffff; margin-bottom: 20px; text-align: center;"><i class="fa fa-magic mr-2"></i>One Decorator, AI Ready</h3>
+                <div style="background-color: #1e1e1e; padding: 20px; border-radius: 8px; overflow-x: auto;">
+                    <pre style="margin: 0; color: #dcdcdc; font-size: 0.95rem; background: transparent; border: none;">
+<span style="color: #ffd700; font-weight: bold;">@mcp_tool</span>(description="Search customers by name")
 def search_customers(self, name: str):
-    <span style="color: #90EE90 !important;"># That's it! Your method is now AI-ready</span></pre>
+    <span style="color: #90EE90;"># That's it! Your method is now AI-ready</span></pre>
                 </div>
             </div>
         </div>
@@ -95,8 +95,8 @@ def search_customers(self, name: str):
             </div>
 
             <!-- Full Code Example -->
-            <div style="background-color: #1e1e1e !important; border-radius: 10px; padding: 20px; margin-top: 20px; overflow-x: auto; border: 1px solid #333 !important;">
-                <pre style="margin: 0 !important; color: #dcdcdc !important; font-size: 0.9rem !important; background: transparent !important; border: none !important; font-family: 'Courier New', monospace !important;">
+            <div style="background-color: #1e1e1e; border-radius: 10px; padding: 20px; margin-top: 20px; overflow-x: auto;">
+                <pre style="margin: 0; color: #dcdcdc; font-size: 0.9rem; background: transparent; border: none;">
 from odoo.addons.mcp_base import mcp_tool
 from odoo import models
 
@@ -146,8 +146,8 @@ class ResPartner(models.Model):
                 </li>
             </ul>
             
-            <div style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 20px; border-radius: 10px; margin-top: 20px; border-left: 4px solid #667eea;">
-                <p style="margin: 0; font-size: 15px;"><strong>Ideal for:</strong> AI-powered customer service bots, intelligent sales assistants, automated inventory management, smart reporting dashboards, natural language ERP queries, and any use case where you want AI to interact with your Odoo data.</p>
+            <div style="background: #f5f7fa; padding: 20px; border-radius: 10px; margin-top: 20px; border-left: 4px solid #667eea;">
+                <p style="margin: 0; font-size: 15px; color: #333;"><strong>Ideal for:</strong> AI-powered customer service bots, intelligent sales assistants, automated inventory management, smart reporting dashboards, natural language ERP queries, and any use case where you want AI to interact with your Odoo data.</p>
             </div>
         </div>
     </div>
@@ -182,8 +182,8 @@ class ResPartner(models.Model):
                 </div>
             </div>
 
-            <div style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 15px; border-radius: 10px; margin-top: 20px; border-left: 4px solid #667eea;">
-                <p style="margin: 0; font-size: 14px;"><strong><i class="fa fa-lightbulb-o mr-1"></i>Tip:</strong> Your MCP endpoint will be: <code style="background: #e9ecef; padding: 2px 6px; border-radius: 3px;">http://your-odoo-server:8069/mcp</code></p>
+            <div style="background: #f5f7fa; padding: 15px; border-radius: 10px; margin-top: 20px; border-left: 4px solid #667eea;">
+                <p style="margin: 0; font-size: 14px; color: #333;"><strong><i class="fa fa-lightbulb-o mr-1"></i>Tip:</strong> Your MCP endpoint will be: <code style="background: #e9ecef; padding: 2px 6px; border-radius: 3px;">http://your-odoo-server:8069/mcp</code></p>
             </div>
         </div>
     </div>
@@ -194,8 +194,8 @@ class ResPartner(models.Model):
             <h3 class="text-center mb-4" style="font-weight: 700; color: #667eea;"><i class="fa fa-shield mr-2"></i>Security &amp; Authentication</h3>
             <p class="text-center text-muted">Protect your Odoo data with proper authentication. We strongly recommend using API key authentication for production environments.</p>
             
-            <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #f39c12;">
-                <p style="margin: 0; font-size: 15px;"><strong><i class="fa fa-exclamation-triangle mr-1"></i>Important:</strong> If the <code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 3px;">auth_api_key</code> module is not installed, the MCP server runs with administrator privileges. This is convenient for development but <strong>NOT recommended for production</strong>.</p>
+            <div style="background: #fff3cd; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #f39c12;">
+                <p style="margin: 0; font-size: 15px; color: #856404;"><strong><i class="fa fa-exclamation-triangle mr-1"></i>Important:</strong> If the <code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 3px;">auth_api_key</code> module is not installed, the MCP server runs with administrator privileges. This is convenient for development but <strong>NOT recommended for production</strong>.</p>
             </div>
 
             <h4 style="color: #667eea; margin-top: 25px;">Production Setup (Strongly Recommended)</h4>
@@ -224,8 +224,8 @@ class ResPartner(models.Model):
                 </div>
             </div>
 
-            <div style="background-color: #1e1e1e !important; border-radius: 8px; padding: 15px; margin: 15px 0; border: 1px solid #333 !important;">
-                <pre style="margin: 0 !important; color: #dcdcdc !important; font-size: 0.9rem !important; background: transparent !important; border: none !important; font-family: 'Courier New', monospace !important;">Api-Key: your-api-key-here</pre>
+            <div style="background-color: #1e1e1e; border-radius: 8px; padding: 15px; margin: 15px 0;">
+                <pre style="margin: 0; color: #dcdcdc; font-size: 0.9rem; background: transparent; border: none;">Api-Key: your-api-key-here</pre>
             </div>
 
             <div class="row mt-4">
@@ -243,9 +243,9 @@ class ResPartner(models.Model):
                 </div>
             </div>
 
-            <div style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white !important; padding: 25px; border-radius: 10px; text-align: center; margin-top: 25px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 22px; color: white !important;"><i class="fa fa-lock mr-2"></i>Secure Your MCP Server Today</h3>
-                <p style="margin: 0; font-size: 15px; color: white !important;">Install auth_api_key and protect your Odoo data with enterprise-grade authentication.</p>
+            <div style="background: #f39c12; color: #ffffff; padding: 25px; border-radius: 10px; text-align: center; margin-top: 25px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 22px; color: #ffffff;"><i class="fa fa-lock mr-2"></i>Secure Your MCP Server Today</h3>
+                <p style="margin: 0; font-size: 15px; color: #ffffff;">Install auth_api_key and protect your Odoo data with enterprise-grade authentication.</p>
             </div>
         </div>
     </div>
@@ -253,10 +253,10 @@ class ResPartner(models.Model):
     <!-- Final CTA -->
     <div class="row oe_spaced mt-5 py-4 text-center">
         <div class="col-12">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; padding: 30px; border-radius: 15px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 24px; color: white !important;">Ready to Make Your Odoo AI-Ready?</h3>
-                <p style="margin: 0 0 20px 0; font-size: 16px; color: white !important;">Install Odoo MCP Framework and expose your first method in under 2 minutes.</p>
-                <a href="https://github.com/chrisking94/odoo_addons" target="_blank" class="btn btn-light btn-lg px-5" style="border-radius: 50px; font-weight: 700; color: #667eea !important;">
+            <div style="background: #667eea; color: #ffffff; padding: 30px; border-radius: 15px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 24px; color: #ffffff;">Ready to Make Your Odoo AI-Ready?</h3>
+                <p style="margin: 0 0 20px 0; font-size: 16px; color: #ffffff;">Install Odoo MCP Framework and expose your first method in under 2 minutes.</p>
+                <a href="https://github.com/chrisking94/odoo_addons" target="_blank" class="btn btn-light btn-lg px-5" style="border-radius: 50px; font-weight: 700; color: #667eea;">
                     <i class="fa fa-github mr-2"></i> Star on GitHub
                 </a>
             </div>
