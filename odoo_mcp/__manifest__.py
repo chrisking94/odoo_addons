@@ -1,11 +1,22 @@
 {
     'name': 'Odoo MCP Framework',
     'version': '15.0.1.0.0',
-    'summary': 'Native Model Context Protocol (MCP) Server for Odoo',
+    'summary': 'Native Model Context Protocol (MCP) Server for Odoo - Connect AI Agents to Your ERP',
     'description': """
-        This addon provides a framework to turn Odoo into a MCP Server.
-        Developers can use the `@mcp_tool` decorator to expose ORM methods 
-        to AI Agents and LLMs.
+        Transform your Odoo into an AI-ready MCP Server with just one decorator!
+        
+        This addon implements the Model Context Protocol (MCP) specification, enabling
+        seamless integration between Odoo and AI agents like Claude, ChatGPT, and Cursor.
+        
+        Key Features:
+        - One-line @mcp_tool decorator to expose methods to AI
+        - Automatic JSON schema generation from Python type hints
+        - Streamable HTTP transport (MCP 2025-03-26)
+        - Zero configuration required
+        - Production-ready with error handling and logging
+        
+        Perfect for building AI-powered chatbots, automated workflows,
+        intelligent assistants, and LLM integrations with your Odoo ERP.
     """,
     'category': 'Tools/AI',
     'author': 'Chris',

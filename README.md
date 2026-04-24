@@ -9,12 +9,38 @@ This collection contains custom modules designed to enhance the Odoo user experi
 
 | Module Name          | Description                                                                 | Link                                  |
 |----------------------|-----------------------------------------------------------------------------|---------------------------------------|
-| Web Widget Pill Icon | [NEW] Dynamic icons & semantic colors for any field via XML options.        | [View Module](./web_widget_pill_icon) |
+| Odoo MCP Framework   | [NEW] Transform Odoo into AI-ready MCP Server with one decorator.           | [View Module](./odoo_mcp)             |
+| Web Widget Pill Icon | Dynamic icons & semantic colors for any field via XML options.              | [View Module](./web_widget_pill_icon) |
 | Web Widget YAML      | Advanced YAML editor with customizable Ace editor options.                  | [View Module](./web_widget_yaml)      |
 
 ---
 
-## 🚀 Featured: Web Widget Pill Icon
+## 🚀 Featured: Odoo MCP Framework
+
+The **Odoo MCP Framework** transforms your Odoo instance into a Model Context Protocol (MCP) Server, enabling seamless integration with AI agents and LLMs.
+
+### Key Highlights:
+
+- **One-Line Setup**: Expose methods to AI with `@mcp_tool` decorator
+- **Type-Safe**: Automatic JSON schema generation from Python type hints
+- **Modern Protocol**: Implements MCP Streamable HTTP (2025-03-26)
+- **Zero Config**: Install and start decorating—no additional setup needed
+- **Production Ready**: Built-in error handling, logging, and CORS support
+
+### Quick Example:
+
+```python
+from odoo.addons.odoo_mcp import mcp_tool
+
+@mcp_tool(description="Search customers by name")
+def search_customers(self, name: str):
+    partners = self.search([('name', 'ilike', name)])
+    return [{'id': p.id, 'name': p.name} for p in partners]
+```
+
+---
+
+## 💎 Also Available: Web Widget Pill Icon
 
 The **Web Widget Pill Icon** is a highly flexible, pure frontend widget that transforms boring text, selection, or numeric fields into stylish "Pills" or "Badges".
 
