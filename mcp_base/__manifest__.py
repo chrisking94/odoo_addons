@@ -28,6 +28,7 @@
     'website': 'https://github.com/chrisking94/odoo_addons/tree/main/mcp_base',
     'license': 'LGPL-3',
     'depends': ['base'],
+    'images': ['static/description/banner.png'],
     'external_dependencies': {
         'python': [],
     },
