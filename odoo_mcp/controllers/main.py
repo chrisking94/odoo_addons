@@ -83,7 +83,7 @@ class McpController(http.Controller):
         Attempt API key authentication using auth_api_key's standard method.
         
         Security Policy:
-        - If auth_api_key is installed: API key is REQUIRED, no fallback to admin
+        - If auth_api_key is installed: API key is REQUIRED
         - If auth_api_key is NOT installed: Use admin with security warning (dev mode)
         
         Returns:

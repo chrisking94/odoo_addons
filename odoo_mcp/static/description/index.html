@@ -460,6 +460,87 @@ class ResPartner(models.Model):
                 </div>
             </div>
             
+            <div class="section">
+                <h2><span class="icon">🔒</span> Security & Authentication</h2>
+                <p style="font-size: 17px; color: #555; margin-bottom: 20px;">
+                    Protect your Odoo data with proper authentication. We strongly recommend using API key authentication for production environments.
+                </p>
+
+                <div class="highlight-box" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-left-color: #f39c12;">
+                    <p style="margin: 0; font-size: 16px;">
+                        <strong>⚠️ Important:</strong> If the <code>auth_api_key</code> module is not installed, the MCP server runs with administrator privileges.
+                        This is convenient for development but <strong>NOT recommended for production</strong>.
+                    </p>
+                </div>
+
+                <h3 style="margin-top: 30px; color: #667eea; font-size: 20px;">Production Setup (Strongly Recommended)</h3>
+
+                <div class="simple-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <strong>Install auth_api_key module</strong>
+                            <p>Get it from <a href="https://apps.odoo.com/apps/modules/browse?search=auth_api_key" target="_blank" style="color: #667eea;">Odoo App Store</a></p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <strong>Create an API key</strong>
+                            <p>Go to Settings → Technical → API Keys → Create new key</p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <strong>Configure your MCP client</strong>
+                            <p>Add the API key to your client's HTTP headers</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-example" style="margin-top: 20px;">
+                    <div class="code-label">HTTP Header</div>
+<code>Api-Key: your-api-key-here</code>
+                </div>
+
+                <h3 style="margin-top: 30px; color: #667eea; font-size: 20px;">Client Examples with Authentication</h3>
+
+                <div class="code-example">
+                    <div class="code-label">Claude Desktop config.json</div>
+<code>{
+  "mcpServers": {
+    "odoo": {
+      "url": "http://localhost:8069/mcp",
+      "transport": "streamable-http",
+      "headers": {
+        "Api-Key": "your-api-key-here"
+      }
+    }
+  }
+}</code>
+                </div>
+
+                <div class="feature-grid" style="margin-top: 20px;">
+                    <div class="feature-card" style="border-left: 4px solid #27ae60;">
+                        <h3>✅ With auth_api_key Installed</h3>
+                        <p>API key required • User-level permissions • Production-ready • Secure</p>
+                    </div>
+
+                    <div class="feature-card" style="border-left: 4px solid #e74c3c;">
+                        <h3>❌ Without auth_api_key</h3>
+                        <p>No authentication • Admin privileges • Development only • Security risk</p>
+                    </div>
+                </div>
+
+                <div class="cta-box" style="margin-top: 30px; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);">
+                    <h3>🔐 Secure Your MCP Server Today</h3>
+                    <p>Install auth_api_key and protect your Odoo data with enterprise-grade authentication.</p>
+                </div>
+            </div>
+
             <div class="cta-box">
                 <h3>Ready to Make Your Odoo AI-Ready?</h3>
                 <p>Install Odoo MCP Framework and expose your first method in under 2 minutes.</p>

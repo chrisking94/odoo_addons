@@ -29,6 +29,7 @@ Key Features
 * **Modern Protocol**: Implements MCP Streamable HTTP transport (2025-03-26)
 * **Zero Config**: No additional setup required beyond installation
 * **Production Ready**: Built-in error handling, logging, and CORS support
+* **Smart Authentication**: Optional auth_api_key support for secure API access
 
 Quick Start
 ===========
@@ -36,6 +37,11 @@ Quick Start
 1. Install the module in your Odoo instance
 2. Decorate your model methods with ``@mcp_tool``
 3. Configure your MCP client to connect to ``http://your-odoo:8069/mcp``
+
+.. important::
+   **Security Notice**: By default, the MCP server runs with administrator privileges for development convenience.
+   For production use, we **strongly recommend** installing the ``auth_api_key`` module to enable secure API key authentication.
+   See the Security & Authentication section below for details.
 
 Usage Example
 =============
@@ -139,6 +145,86 @@ Edit your ``config.json``:
         }
       }
     }
+
+Security & Authentication
+=========================
+
+Without auth_api_key (Development Mode)
+---------------------------------------
+
+If the ``auth_api_key`` module is not installed, the MCP server runs with administrator privileges.
+This is convenient for local development and testing but **NOT recommended for production**.
+
+You'll see a warning in logs on first request:
+
+.. code-block:: text
+
+    WARNING odoo.addons.odoo_mcp.controllers.main: MCP Security Warning: Running with sudo() privileges. 
+    For production use, please install 'auth_api_key' module for proper authentication.
+
+With auth_api_key (Production Mode - Strongly Recommended)
+----------------------------------------------------------
+
+For production deployments, install the ``auth_api_key`` module to enable secure API key authentication:
+
+**Step 1: Install auth_api_key**
+
+Download from `Odoo App Store <https://apps.odoo.com/apps/modules/browse?search=auth_api_key>`_ or your preferred source.
+
+**Step 2: Create an API Key**
+
+1. Go to Settings → Technical → API Keys
+2. Click "Create"
+3. Set a name and select the user account
+4. Copy the generated API key
+
+**Step 3: Configure Your MCP Client**
+
+Add the API key to your client's HTTP headers:
+
+**ChatWise/Cursor:**
+Add header: ``Api-Key: your-api-key-here``
+
+**Claude Desktop config.json:**
+
+.. code-block:: json
+
+    {
+      "mcpServers": {
+        "odoo": {
+          "url": "http://localhost:8069/mcp",
+          "transport": "streamable-http",
+          "headers": {
+            "Api-Key": "your-api-key-here"
+          }
+        }
+      }
+    }
+
+**Python requests:**
+
+.. code-block:: python
+
+    headers = {
+        'Api-Key': 'your-api-key-here',
+        'Content-Type': 'application/json'
+    }
+
+Authentication Behavior
+-----------------------
+
++-------------------------------+----------------------------------+----------------------------------+
+| Scenario                      | auth_api_key Installed           | auth_api_key Not Installed       |
++===============================+==================================+==================================+
+| API key provided & valid      | ✅ Authenticated as specified user | ❌ Error: Invalid API key        |
++-------------------------------+----------------------------------+----------------------------------+
+| API key provided but invalid  | ❌ Error: Authentication failed  | ❌ Error: Invalid API key        |
++-------------------------------+----------------------------------+----------------------------------+
+| No API key provided           | ❌ Error: API key required       | ⚠️ Admin access (with warning)  |
++-------------------------------+----------------------------------+----------------------------------+
+
+.. warning::
+   **Never run MCP server without auth_api_key in production!** Without authentication, anyone who can reach your Odoo instance has full administrative access through the MCP endpoint.
 
 Architecture
 ============
