@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odoo MCP Framework</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #714B67;
+            border-bottom: 3px solid #714B67;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #714B67;
+            margin-top: 30px;
+        }
+        .highlight {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .badge {
+            display: inline-block;
+            background: #714B67;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Odoo MCP Framework</h1>
+
+        <div style="margin: 20px 0;">
+            <span class="badge">AI Integration</span>
+            <span class="badge">MCP Server</span>
+            <span class="badge">LLM Ready</span>
+        </div>
+
+        <div class="highlight">
+            <strong>Transform your Odoo into an AI-ready MCP Server in seconds!</strong><br>
+            Expose Odoo methods to AI Agents and LLMs with just one decorator.
+        </div>
+
+        <h2>🎯 What Does It Do?</h2>
+        <p>This addon turns your Odoo instance into a <strong>Model Context Protocol (MCP) Server</strong>, enabling AI agents and Large Language Models to interact with your Odoo data seamlessly.</p>
+
+        <ul class="feature-list">
+            <li>Expose any Odoo model method to AI agents</li>
+            <li>Simple <code>@mcp_tool</code> decorator - just one line of code</li>
+            <li>Automatic JSON schema generation from Python type hints</li>
+            <li>Built-in SSE endpoint for real-time communication</li>
+            <li>Full JSON-RPC 2.0 support</li>
+            <li>Zero configuration required</li>
+        </ul>
+
+        <h2>⚡ Super Simple Usage Example</h2>
+
+        <p><strong>Step 1:</strong> Add the decorator to your model method</p>
+
+        <div class="code-block">
+<code>from odoo import models
+from odoo_mcp.decorators import mcp_tool
+
+class ResPartner(models.Model):
+    _inherit = 'res.partner'
+
+    @mcp_tool(description="Search for customers by name")
+    def search_customers(self, name: str):
+        """This method is now accessible to AI agents!"""
+        customers = self.search([('name', 'ilike', name)])
+        return [{
+            'id': c.id,
+            'name': c.name,
+            'email': c.email
+        } for c in customers]</code>
+        </div>
+
+        <p><strong>Step 2:</strong> That's it! Your method is now available at <code>/mcp/sse</code></p>
+
+        <p><strong>Step 3:</strong> AI agents can now call your method:</p>
+
+        <div class="code-block">
+<code># AI Agent sends this JSON-RPC request:
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "res.partner.search_customers",
+    "arguments": {"name": "John"}
+  }
+}
+
+# Gets this response:
+[
+  {"id": 12, "name": "John Smith", "email": "john@example.com"},
+  {"id": 45, "name": "John Doe", "email": "johnd@example.com"}
+]</code>
+        </div>
+
+        <h2>🚀 Key Benefits</h2>
+        <ul class="feature-list">
+            <li><strong>No complex setup</strong> - Just install and start decorating methods</li>
+            <li><strong>Type-safe</strong> - Automatic schema generation from Python annotations</li>
+            <li><strong>Flexible</strong> - Works with any Odoo model and method</li>
+            <li><strong>Standard compliant</strong> - Follows MCP protocol specification</li>
+            <li><strong>Production ready</strong> - Built for enterprise use</li>
+        </ul>
+
+        <h2>📋 Requirements</h2>
+        <ul>
+            <li>Odoo 15.0 or later</li>
+            <li>Python 3.7+</li>
+        </ul>
+
+        <div class="highlight" style="margin-top: 30px;">
+            <strong>💡 Perfect for:</strong> Building AI-powered chatbots, automated workflows, intelligent assistants, and LLM integrations with your Odoo ERP system.
+        </div>
+    </div>
+</body>
+</html>
