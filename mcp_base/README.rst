@@ -15,125 +15,177 @@ Odoo MCP Framework
    :target: https://github.com/chrisking94/odoo_addons/tree/main/mcp_base
    :alt: Github Repo
 
-**Connect Odoo ERP to AI Agents with One Line of Code**
+**Connect Odoo to AI Agents with One Decorator**
 
-This module transforms your Odoo instance into a **Model Context Protocol (MCP) Server**, enabling seamless integration with AI agents like Claude, ChatGPT, Cursor, and other Large Language Models (LLMs).
+Transform your Odoo into an **MCP (Model Context Protocol) Server** and expose any method to AI agents like Claude, ChatGPT, and Cursor - with just ``@mcp_tool``.
 
-The standout feature is its **simplicity**: expose any Odoo model method to AI agents with just one decorator line.
+Why This Module?
+================
+
+**The Simplest Way to Integrate Odoo with AI:**
+
+.. code-block:: python
+
+    @mcp_tool
+    def search_customers(self, name: str):
+        """Search customers by name."""
+        return self.search([('name', 'ilike', name)])
+
+That's it. No complex configuration, no manual schema definition. Just add the decorator and go.
 
 Key Features
 ============
 
-* **One-Line Setup**: Use ``@mcp_tool`` decorator to expose methods instantly
-* **Type-Safe**: Automatic JSON schema generation from Python type hints
-* **Modern Protocol**: Implements MCP Streamable HTTP transport (2025-03-26)
-* **Zero Config**: No additional setup required beyond installation
-* **Production Ready**: Built-in error handling, logging, and CORS support
-* **Smart Authentication**: Optional auth_api_key support for secure API access
+* **One-Line Setup**: ``@mcp_tool`` decorator instantly exposes methods to AI
+* **Zero Configuration**: Automatic JSON schema generation from type hints
+* **Smart Documentation**: Extracts parameter descriptions from docstrings
+* **Modern Protocol**: Implements MCP Streamable HTTP (2025-03-26)
+* **Production Ready**: Error handling, logging, CORS support built-in
+* **Secure Authentication**: Optional API key support via ``auth_api_key``
 
 Quick Start
 ===========
 
 1. Install the module in your Odoo instance
-2. Decorate your model methods with ``@mcp_tool``
-3. Configure your MCP client to connect to ``http://your-odoo:8069/mcp``
+2. Add ``@mcp_tool`` to any model method
+3. Connect your MCP client to ``http://your-odoo:8069/mcp``
 
 .. important::
    **Security Notice**: By default, the MCP server runs with administrator privileges for development convenience.
    For production use, we **strongly recommend** installing the ``auth_api_key`` module to enable secure API key authentication.
    See the Security & Authentication section below for details.
 
-Usage Example
-=============
+Usage Examples
+==============
 
-Basic Tool Definition
----------------------
+Basic Usage - The Simplest Way
+-------------------------------
 
-Add the decorator to any model method you want to expose:
+Just add the decorator. That's all you need:
 
 .. code-block:: python
 
-    from odoo.addons.mcp_base import mcp_tool  # IDE might complain package missing, but don't worry, odoo can find it.
+    from odoo.addons.mcp_base import mcp_tool
     from odoo import models
 
     class ResPartner(models.Model):
         _inherit = 'res.partner'
         
-        @mcp_tool(description="Search for customers by name")
-        def search_customers(self, name: str):
-            """Search customers and return their details."""
-            partners = self.search([('name', 'ilike', name)], limit=10)
+        @mcp_tool
+        def search_customers(self, name: str, limit: int = 10):
+            """Search customers by name.
+            
+            :param name: Customer name to search for
+            :param limit: Maximum number of results
+            """
+            partners = self.search([('name', 'ilike', name)], limit=limit)
             return [{
                 'id': p.id,
                 'name': p.name,
-                'email': p.email,
-                'phone': p.phone
+                'email': p.email
             } for p in partners]
 
-Advanced Type Hints
--------------------
+**What Happens Automatically:**
 
-The decorator automatically generates JSON schemas from Python type annotations:
+✅ Type hints -> JSON Schema types (``str`` -> ``string``, ``int`` -> ``integer``)  
+✅ Docstring -> Tool description + parameter descriptions  
+✅ Default values -> Schema defaults  
+✅ Method signature -> Required parameters list
+
+Flexible Decorator Styles
+--------------------------
+
+The decorator supports multiple usage styles for maximum convenience:
 
 .. code-block:: python
 
-    from typing import List, Optional
+    # Style 1: No parentheses (recommended for most cases)
+    @mcp_tool
+    def method1(self, param: str):
+        """Simple tool."""
+        pass
     
-    @mcp_tool(description="Get customer orders")
-    def get_customer_orders(
-        self, 
-        partner_id: int,
-        status: Optional[str] = None,
-        limit: int = 10
-    ):
-        """Retrieve orders for a specific customer."""
-        domain = [('partner_id', '=', partner_id)]
-        if status:
-            domain.append(('state', '=', status))
+    # Style 2: Custom description (override docstring)
+    @mcp_tool("Advanced search with filters")
+    def method2(self, query: str):
+        """Complex implementation..."""
+        pass
+    
+    # Style 3: Keyword argument
+    @mcp_tool(description="Another custom description")
+    def method3(self, data: str):
+        """Method with keyword arg."""
+        pass
+
+Choose the style that fits your needs. Most of the time, ``@mcp_tool`` (Style 1) is all you need.
+
+How It Works
+------------
+
+The decorator automatically builds a complete JSON Schema from your code:
+
+.. code-block:: python
+
+    @mcp_tool
+    def search_customers(self, name: str, limit: int = 10):
+        """Search customers by name.
         
-        orders = self.env['sale.order'].search(domain, limit=limit)
-        return [{
-            'id': o.id,
-            'name': o.name,
-            'total': o.amount_total,
-            'status': o.state
-        } for o in orders]
+        :param name: Customer name to search for
+        :param limit: Maximum number of results
+        """
+        # Type hints provide types automatically!
+        # Only write descriptions in docstring
 
-Supported Types
----------------
+**Generated Schema:**
 
-The decorator supports these Python type annotations:
+.. code-block:: json
 
-* Basic types: ``str``, ``int``, ``float``, ``bool``
-* Collections: ``List[str]``, ``Dict``, ``Tuple[int, ...]``
-* Optional: ``Optional[str]`` (automatically sets default to null)
-* Default values are extracted and included in the schema
+    {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",              // From type hint
+          "description": "Customer name to search for"  // From docstring
+        },
+        "limit": {
+          "type": "integer",             // From type hint
+          "description": "Maximum number of results",  // From docstring
+          "default": 10                  // From default value
+        }
+      },
+      "required": ["name"]
+    }
+
+**Zero Duplication:**
+
+* ✅ Types from type hints -> No need to repeat in docstrings
+* ✅ Descriptions from docstrings -> AI-friendly documentation
+* ✅ Defaults from parameters -> Automatic schema defaults
+* ✅ Any docstring format -> Sphinx, Google, or NumPy style
 
 Client Configuration
 ====================
 
-Your MCP endpoint will be available at: ``http://your-odoo-server:8069/mcp``
+Your MCP endpoint: ``http://your-odoo-server:8069/mcp``
 
 ChatWise
 --------
 
-1. Open ChatWise settings
-2. Navigate to MCP Servers
-3. Add new server → Select "Streamable HTTP"
-4. Enter your Odoo URL: ``http://localhost:8069/mcp``
+1. Settings -> MCP Servers -> Add new server
+2. Select "Streamable HTTP"
+3. Enter URL: ``http://localhost:8069/mcp``
 
 Cursor
 ------
 
-1. Go to Settings → MCP
-2. Click "Add Server"
-3. Choose Streamable HTTP transport
-4. Configure endpoint URL
+1. Settings -> MCP -> Add Server
+2. Choose Streamable HTTP transport
+3. Configure endpoint URL
 
 Claude Desktop
 --------------
 
-Edit your ``config.json``:
+Edit ``config.json``:
 
 .. code-block:: json
 
@@ -149,43 +201,38 @@ Edit your ``config.json``:
 Security & Authentication
 =========================
 
-Without auth_api_key (Development Mode)
----------------------------------------
+Development Mode (Default)
+---------------------------
 
-If the ``auth_api_key`` module is not installed, the MCP server runs with administrator privileges.
-This is convenient for local development and testing but **NOT recommended for production**.
+Without ``auth_api_key``, the MCP server runs with administrator privileges. Convenient for testing, but **NOT for production**.
 
-You'll see a warning in logs on first request:
+You'll see a warning in logs:
 
 .. code-block:: text
 
-    WARNING odoo.addons.mcp_base.controllers.main: MCP Security Warning: Running with sudo() privileges. 
-    For production use, please install 'auth_api_key' module for proper authentication.
+    WARNING: MCP Security Warning: Running with sudo() privileges. 
+    For production use, please install 'auth_api_key' module.
 
-With auth_api_key (Production Mode - Strongly Recommended)
-----------------------------------------------------------
+Production Mode (Recommended)
+------------------------------
 
-For production deployments, install the ``auth_api_key`` module to enable secure API key authentication:
+Install ``auth_api_key`` module for secure API key authentication:
 
 **Step 1: Install auth_api_key**
 
-Download from `Odoo App Store <https://apps.odoo.com/apps/modules/browse?search=auth_api_key>`_ or your preferred source.
+Download from `Odoo App Store <https://apps.odoo.com/apps/modules/browse?search=auth_api_key>`_.
 
 **Step 2: Create an API Key**
 
-1. Go to Settings → Technical → API Keys
-2. Click "Create"
-3. Set a name and select the user account
-4. Copy the generated API key
+1. Settings -> Technical -> API Keys -> Create
+2. Set name and select user account
+3. Copy the generated API key
 
-**Step 3: Configure Your MCP Client**
+**Step 3: Configure Your Client**
 
-Add the API key to your client's HTTP headers:
-
-**ChatWise/Cursor:**
 Add header: ``Api-Key: your-api-key-here``
 
-**Claude Desktop config.json:**
+**Claude Desktop example:**
 
 .. code-block:: json
 
@@ -201,30 +248,8 @@ Add header: ``Api-Key: your-api-key-here``
       }
     }
 
-**Python requests:**
-
-.. code-block:: python
-
-    headers = {
-        'Api-Key': 'your-api-key-here',
-        'Content-Type': 'application/json'
-    }
-
-Authentication Behavior
------------------------
-
-+-------------------------------+----------------------------------+----------------------------------+
-| Scenario                      | auth_api_key Installed           | auth_api_key Not Installed       |
-+===============================+==================================+==================================+
-| API key provided & valid      | ✅ Authenticated as specified user | ❌ Error: Invalid API key        |
-+-------------------------------+----------------------------------+----------------------------------+
-| API key provided but invalid  | ❌ Error: Authentication failed  | ❌ Error: Invalid API key        |
-+-------------------------------+----------------------------------+----------------------------------+
-| No API key provided           | ❌ Error: API key required       | ⚠️ Admin access (with warning)  |
-+-------------------------------+----------------------------------+----------------------------------+
-
 .. warning::
-   **Never run MCP server without auth_api_key in production!** Without authentication, anyone who can reach your Odoo instance has full administrative access through the MCP endpoint.
+   **Never run MCP server without auth_api_key in production!** Without authentication, anyone can access your Odoo with full admin privileges.
 
 Architecture
 ============
@@ -232,21 +257,19 @@ Architecture
 Streamable HTTP Transport
 -------------------------
 
-This module implements the latest MCP protocol specification (2025-03-26) using Streamable HTTP transport:
+Implements MCP protocol (2025-03-26):
 
-* **GET /mcp**: Establishes SSE stream for server-to-client notifications
-* **POST /mcp**: Receives JSON-RPC 2.0 requests from clients
-
-The implementation uses a monkey patch to bypass Odoo's strict request type checking, allowing both GET and POST requests on the same endpoint while maintaining full control over response formatting.
+* **GET /mcp**: SSE stream for server notifications
+* **POST /mcp**: JSON-RPC 2.0 requests from clients
 
 Protocol Flow
 -------------
 
-1. Client connects via GET to establish SSE stream
-2. Client sends ``initialize`` request via POST
-3. Server responds with protocol version and capabilities
-4. Client sends ``notifications/initialized`` (no response needed)
-5. Client can now call ``tools/list`` and ``tools/call``
+1. Client connects via GET -> establishes SSE stream
+2. Client sends ``initialize`` via POST
+3. Server responds with capabilities
+4. Client confirms with ``notifications/initialized``
+5. Ready to call ``tools/list`` and ``tools/call``
 
 For Developers
 ==============
@@ -254,27 +277,25 @@ For Developers
 Debugging
 ---------
 
-Enable debug logging to see MCP activity:
+Enable debug logging:
 
 .. code-block:: bash
 
     odoo-bin --log-handler=odoo.addons.mcp_base.controllers.main:DEBUG
 
-This will log:
+Logs show:
 * Received MCP methods and parameters
 * Found tools during scanning
-* Tool execution errors with full tracebacks
+* Tool execution errors with tracebacks
 
-Creating Custom Tools
----------------------
+Best Practices
+--------------
 
-Best practices for creating MCP tools:
-
-1. **Use descriptive names**: The method name should clearly indicate its purpose
-2. **Add type hints**: Enables automatic schema generation
-3. **Write clear descriptions**: Helps AI agents understand when to use the tool
-4. **Return simple structures**: Dicts and lists serialize best to JSON
-5. **Handle errors gracefully**: Return meaningful error messages
+1. **Descriptive names**: Method name should indicate purpose
+2. **Type hints**: Enable automatic schema generation
+3. **Clear descriptions**: Help AI agents understand usage
+4. **Simple returns**: Dicts and lists serialize best
+5. **Error handling**: Return meaningful error messages
 
 Example:
 
@@ -282,7 +303,7 @@ Example:
 
     @mcp_tool(description="Calculate product profit margin")
     def calculate_margin(self, product_id: int, cost: float):
-        """Calculate profit margin for a product given its cost."""
+        """Calculate profit margin for a product."""
         try:
             product = self.env['product.product'].browse(product_id)
             if not product.exists():
@@ -300,20 +321,6 @@ Example:
         except Exception as e:
             return {'error': str(e)}
 
-Testing
-=======
-
-A test script is provided to verify your MCP server setup:
-
-.. code-block:: bash
-
-    python test_mcp.py http://localhost:8069
-
-This will test:
-* SSE stream connection
-* Initialize handshake
-* Tool listing
-* Tool execution (if configured)
 
 Troubleshooting
 ===============
@@ -321,11 +328,11 @@ Troubleshooting
 No tools found
 --------------
 
-If ``tools/list`` returns an empty list:
+If ``tools/list`` returns empty:
 
-1. Ensure your module with ``@mcp_tool`` decorated methods is installed
-2. Check that methods are defined on models (not regular Python classes)
-3. Verify methods don't start with underscore (private methods are skipped)
+1. Ensure module with ``@mcp_tool`` is installed
+2. Check methods are on models (not regular classes)
+3. Verify methods don't start with underscore
 4. Enable debug logging to see scanning results
 
 Connection errors
@@ -334,18 +341,17 @@ Connection errors
 If clients can't connect:
 
 1. Verify Odoo is running and accessible
-2. Check firewall settings allow connections to port 8069
-3. Ensure the URL format is correct: ``http://host:port/mcp``
-4. For remote access, configure Odoo's ``--db_host`` and network settings
+2. Check firewall allows port 8069
+3. Ensure URL format: ``http://host:port/mcp``
 
 Protocol errors
 ---------------
 
 If you see JSON-RPC errors:
 
-1. Check Odoo logs for detailed error messages
-2. Verify your MCP client supports Streamable HTTP transport
-3. Ensure you're using MCP protocol version 2025-03-26 or compatible
+1. Check Odoo logs for details
+2. Verify client supports Streamable HTTP
+3. Ensure MCP protocol version 2025-03-26 compatibility
 
 Bug Tracker
 ===========
