@@ -32,14 +32,16 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python 3.6
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.6'
+        run: |
+          sudo add-apt-repository ppa:deadsnakes/ppa
+          sudo apt-get update
+          sudo apt-get install -y python3.6 python3.6-venv python3.6-dev
+          python3.6 --version
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install wheel setuptools requests lxml_html_clean
+          python3.6 -m pip install --upgrade pip
+          pip3.6 install wheel setuptools requests lxml_html_clean
 
       - name: Install Odoo 12.0
         run: pip install https://nightly.odoo.com/12.0/nightly/src/odoo_12.0.latest.tar.gz
@@ -110,14 +112,16 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python 3.6
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.6'
+        run: |
+          sudo add-apt-repository ppa:deadsnakes/ppa
+          sudo apt-get update
+          sudo apt-get install -y python3.6 python3.6-venv python3.6-dev
+          python3.6 --version
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install wheel setuptools requests lxml_html_clean
+          python3.6 -m pip install --upgrade pip
+          pip3.6 install wheel setuptools requests lxml_html_clean
 
       - name: Install Odoo 13.0
         run: pip install https://nightly.odoo.com/13.0/nightly/src/odoo_13.0.latest.tar.gz
@@ -188,14 +192,16 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python 3.7
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.7'
+        run: |
+          sudo add-apt-repository ppa:deadsnakes/ppa
+          sudo apt-get update
+          sudo apt-get install -y python3.7 python3.7-venv python3.7-dev
+          python3.7 --version
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install wheel setuptools requests lxml_html_clean
+          python3.7 -m pip install --upgrade pip
+          pip3.7 install wheel setuptools requests lxml_html_clean
 
       - name: Install Odoo 14.0
         run: pip install https://nightly.odoo.com/14.0/nightly/src/odoo_14.0.latest.tar.gz
