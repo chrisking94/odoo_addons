@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo.tests import common
-from ..decorators import mcp_tool, _python_type_to_json_type
+from ..decorators import mcp_tool, python_type_to_json_type
 from typing import List, Dict, Optional
 import inspect
 
@@ -124,22 +124,22 @@ class TestMCPDecorator(common.TransactionCase):
     def test_python_type_to_json_type_mapping(self):
         """Test Python to JSON type conversion"""
         
-        self.assertEqual(_python_type_to_json_type(str), "string")
-        self.assertEqual(_python_type_to_json_type(int), "integer")
-        self.assertEqual(_python_type_to_json_type(float), "number")
-        self.assertEqual(_python_type_to_json_type(bool), "boolean")
-        self.assertEqual(_python_type_to_json_type(bytes), "string")
+        self.assertEqual(python_type_to_json_type(str), "string")
+        self.assertEqual(python_type_to_json_type(int), "integer")
+        self.assertEqual(python_type_to_json_type(float), "number")
+        self.assertEqual(python_type_to_json_type(bool), "boolean")
+        self.assertEqual(python_type_to_json_type(bytes), "string")
     
     def test_python_type_to_json_type_list(self):
         """Test Python list type conversion"""
         from typing import List
         
-        result = _python_type_to_json_type(List[str])
+        result = python_type_to_json_type(List[str])
         self.assertEqual(result['type'], 'array')
         self.assertEqual(result['items']['type'], 'string')
     
     def test_python_type_to_json_type_empty_annotation(self):
         """Test type conversion with empty annotation"""
         
-        result = _python_type_to_json_type(inspect.Parameter.empty)
+        result = python_type_to_json_type(inspect.Parameter.empty)
         self.assertEqual(result, "string")
