@@ -12,11 +12,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # main 分支只测试 15.0,版本分支测试对应版本
         include:
-          - odoo-version: '15.0'
+          # main 和 15.0 分支测试 Odoo 15.0
+          - branch-pattern: 'main|15.0'
+            odoo-version: '15.0'
             python-version: '3.10'
-            trigger-branches: ['main', '15.0']
+          # 16.0 分支测试 Odoo 16.0
+          - branch-pattern: '16.0'
+            odoo-version: '16.0'
+            python-version: '3.10'
+          # 17.0 分支测试 Odoo 17.0
+          - branch-pattern: '17.0'
+            odoo-version: '17.0'
+            python-version: '3.10'
+          # 18.0 分支测试 Odoo 18.0
+          - branch-pattern: '18.0'
+            odoo-version: '18.0'
+            python-version: '3.12'
+    
+    # 只运行匹配当前分支的配置
+    if: |
+      (github.ref == 'refs/heads/main' && matrix.branch-pattern == 'main|15.0') ||
+      (github.ref == 'refs/heads/15.0' && matrix.branch-pattern == 'main|15.0') ||
+      (github.ref == 'refs/heads/16.0' && matrix.branch-pattern == '16.0') ||
+      (github.ref == 'refs/heads/17.0' && matrix.branch-pattern == '17.0') ||
+      (github.ref == 'refs/heads/18.0' && matrix.branch-pattern == '18.0')
 
     services:
       postgres:
