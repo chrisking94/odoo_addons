@@ -147,8 +147,12 @@ def main():
         if version_updated:
             # Commit and push
             run_command(f"git add {MANIFEST_PATH}")
-            run_command(f'git commit -m "Update version to {odoo_version} for Odoo {branch}"')
-            print(f"✅ Version committed")
+            try:
+                run_command(f'git commit -m "Update version to {odoo_version} for Odoo {branch}"')
+                print(f"✅ Version committed")
+            except SystemExit:
+                # No changes to commit, version already set
+                print(f"⚠️ No changes to commit (version already {odoo_version})")
         else:
             print(f"⚠️ No changes to commit (version already {odoo_version})")
         
