@@ -3,7 +3,18 @@
 # @Author       : Chris
 # @Description  :
 import inspect
-from typing import get_origin, get_args
+
+
+# Compatible implementation for all Python versions
+# Uses __origin__ and __args__ attributes available since Python 3.5
+def get_origin(tp):
+    """Get the origin of a generic type."""
+    return getattr(tp, '__origin__', None)
+
+
+def get_args(tp):
+    """Get the type arguments of a generic type."""
+    return getattr(tp, '__args__', ())
 
 
 def _python_type_to_json_type(py_type):
