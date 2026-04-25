@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 
-VERSIONS = ['15.0', '16.0', '17.0', '18.0']
+VERSIONS = ['12.0', '13.0', '14.0', '15.0', '16.0', '17.0', '18.0', '19.0']
 MANIFEST_PATH = Path('mcp_base/__manifest__.py')
 
 
@@ -31,8 +31,14 @@ def update_manifest_version(version):
     """Update version in manifest file"""
     content = MANIFEST_PATH.read_text(encoding='utf-8')
     
-    # Replace version
+    # Check if version is already set
     import re
+    match = re.search(r"'version':\s*'([^']+)'", content)
+    if match and match.group(1) == version:
+        print(f"✅ Version is already {version}, no update needed")
+        return False
+    
+    # Replace version
     new_content = re.sub(
         r"'version':\s*'[^']+'",
         f"'version': '{version}'",
@@ -41,6 +47,7 @@ def update_manifest_version(version):
     
     MANIFEST_PATH.write_text(new_content, encoding='utf-8')
     print(f"✅ Version updated to: {version}")
+    return True
 
 
 def get_odoo_version(branch):
@@ -77,21 +84,16 @@ def main():
     
     # 3. Update main branch version
     print(f"\n📋 Step 3: Updating main branch version to {new_version}")
+    version_updated = update_manifest_version(new_version)
     
-    # Check current version
-    import re
-    current_content = MANIFEST_PATH.read_text(encoding='utf-8')
-    match = re.search(r"'version':\s*'([^']+)'", current_content)
-    if match and match.group(1) == new_version:
-        print(f"⚠️ Version is already {new_version}, skipping update")
-    else:
-        update_manifest_version(new_version)
-        
+    if version_updated:
         # 4. Commit main branch
         print("\n📋 Step 4: Committing main branch")
         run_command(f"git add {MANIFEST_PATH}")
         run_command(f'git commit -m "Release version {new_version}"')
         run_command("git push origin main")
+    else:
+        print("⚠️ Main branch version unchanged, skipping commit")
     
     # 5. Merge to version branches and update versions
     for branch in VERSIONS:
@@ -140,11 +142,20 @@ def main():
         
         # Update version to Odoo version format
         print(f"→ Updating version to {odoo_version}")
-        update_manifest_version(odoo_version)
+        version_updated = update_manifest_version(odoo_version)
         
-        # Commit and push
-        run_command(f"git add {MANIFEST_PATH}")
-        run_command(f'git commit -m "Update version to {odoo_version} for Odoo {branch}"')
+        if version_updated:
+            # Commit and push
+            run_command(f"git add {MANIFEST_PATH}")
+            try:
+                run_command(f'git commit -m "Update version to {odoo_version} for Odoo {branch}"')
+                print(f"✅ Version committed")
+            except SystemExit:
+                # No changes to commit, version already set
+                print(f"⚠️ No changes to commit (version already {odoo_version})")
+        else:
+            print(f"⚠️ No changes to commit (version already {odoo_version})")
+        
         run_command(f"git push origin {branch}")
         print(f"✅ Branch {branch} released successfully")
     
