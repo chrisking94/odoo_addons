@@ -1,0 +1,169 @@
+# -*- coding: utf-8 -*-
+# @Time         : 23:27 2026/4/25
+# @Author       : Chris
+# @Description  : Type conversion utilities for MCP framework.
+import inspect
+import re
+
+# Basic type mapping shared by both converters
+BASIC_TYPE_MAP = {
+    'str': 'string',
+    'string': 'string',
+    'unicode': 'string',
+    'int': 'integer',
+    'integer': 'integer',
+    'long': 'integer',
+    'float': 'number',
+    'double': 'number',
+    'number': 'number',
+    'bool': 'boolean',
+    'boolean': 'boolean',
+    'list': 'array',
+    'dict': 'object',
+    'object': 'object',
+    'any': 'string',
+}
+
+
+def get_origin(tp):
+    """Get the origin of a generic type (compatible with Python 3.5+)."""
+    return getattr(tp, '__origin__', None)
+
+
+def get_args(tp):
+    """Get the type arguments of a generic type."""
+    return getattr(tp, '__args__', ())
+
+
+def python_type_to_json_type(py_type):
+    """Convert Python type annotations to JSON Schema types.
+    
+    Handles Python typing module types like List[str], Dict[str, int], Optional[T], etc.
+    
+    Args:
+        py_type: Python type annotation (from function signature)
+        
+    Returns:
+        str or dict: JSON Schema type string or object
+            - Basic types: 'string', 'integer', 'number', 'boolean', 'null'
+            - Complex types: {'type': 'array', 'items': {...}}, {'type': 'object'}
+    
+    Examples:
+        >>> python_type_to_json_type(str)
+        'string'
+        >>> python_type_to_json_type(List[int])
+        {'type': 'array', 'items': {'type': 'integer'}}
+        >>> python_type_to_json_type(Dict[str, Any])
+        {'type': 'object'}
+    """
+    if py_type == inspect.Parameter.empty:
+        return "string"
+
+    origin = get_origin(py_type)
+
+    if origin is not None:
+        if origin in (list, tuple, set):
+            args = get_args(py_type)
+            if args:
+                item_type = python_type_to_json_type(args[0])
+                return {"type": "array", "items": {"type": item_type}}
+            return {"type": "array", "items": {"type": "string"}}
+        elif origin is dict:
+            return {"type": "object"}
+        elif origin.__name__ == 'Literal':
+            return {"type": "string"}
+
+    # Handle bare list/dict/tuple/set types (Python 3.9+)
+    type_mapping = {
+        str: "string",
+        int: "integer",
+        float: "number",
+        bool: "boolean",
+        bytes: "string",
+        type(None): "null",
+        list: {"type": "array", "items": {"type": "string"}},
+        dict: {"type": "object"},
+        tuple: {"type": "array"},
+        set: {"type": "array", "items": {"type": "string"}},
+    }
+
+    result = type_mapping.get(py_type, "string")
+    return result if isinstance(result, dict) else result
+
+
+def docstring_type_to_json_type(type_str):
+    """Convert docstring type annotation string to JSON Schema type.
+    
+    Handles type strings from Sphinx/reST :type: directives like 'List[str]', 'Dict[str, int]'.
+    
+    Supports:
+    - Basic types: str, int, float, bool, list, dict
+    - Generic types: List[str], Dict[str, int], Optional[str]
+    - Complex types: List[Dict[str, Any]], Union[int, str], etc.
+    
+    Args:
+        type_str: Type string from docstring :type: directive
+        
+    Returns:
+        str or dict: JSON Schema type (e.g., 'string', 'integer', or {'type': 'array', 'items': {...}})
+    
+    Examples:
+        >>> docstring_type_to_json_type('str')
+        'string'
+        >>> docstring_type_to_json_type('List[int]')
+        {'type': 'array', 'items': {'type': 'integer'}}
+        >>> docstring_type_to_json_type('Optional[str]')
+        'string'
+    """
+    if not type_str:
+        return 'string'
+    
+    type_str = type_str.strip()
+    
+    # Handle Optional/Union types
+    if type_str.startswith('Optional[') or type_str.startswith('Union['):
+        match = re.match(r'(?:Optional|Union)\[(.+)\]', type_str)
+        if match:
+            inner_types = match.group(1).split(',')
+            for t in inner_types:
+                t = t.strip()
+                if t.lower() not in ('none', 'nonetype'):
+                    return docstring_type_to_json_type(t)
+    
+    # Handle List/Sequence types
+    if type_str.startswith('List[') or type_str.startswith('Sequence['):
+        match = re.match(r'(?:List|Sequence)\[(.+)\]', type_str)
+        if match:
+            item_type = docstring_type_to_json_type(match.group(1))
+            items_schema = item_type if isinstance(item_type, dict) else {'type': item_type}
+            return {'type': 'array', 'items': items_schema}
+        return {'type': 'array', 'items': {'type': 'string'}}
+    
+    # Handle Dict/Mapping types
+    if type_str.startswith('Dict[') or type_str.startswith('Mapping['):
+        return {'type': 'object'}
+    
+    # Handle Tuple/Set types
+    if type_str.startswith(('Tuple[', 'Set[')):
+        return {'type': 'array'}
+    
+    # Basic type mapping
+    basic_types = {
+        'str': 'string',
+        'string': 'string',
+        'unicode': 'string',
+        'int': 'integer',
+        'integer': 'integer',
+        'long': 'integer',
+        'float': 'number',
+        'double': 'number',
+        'number': 'number',
+        'bool': 'boolean',
+        'boolean': 'boolean',
+        'list': 'array',
+        'dict': 'object',
+        'object': 'object',
+        'any': 'string',
+    }
+    
+    return basic_types.get(type_str.lower(), 'string')
