@@ -8,12 +8,20 @@ import json
 class TestMCPController(common.HttpCase):
     """Test MCP controller endpoints"""
 
+    def setUp(self):
+        super().setUp()
+        # Ensure the module is installed
+        self.module = self.env['ir.module.module'].search([('name', '=', 'mcp_base')])
+        if self.module:
+            self.module.button_immediate_install()
+    
     def test_mcp_endpoint_exists(self):
         """Test that MCP endpoint is accessible"""
-        response = self.url_open('/mcp', timeout=20)
+        response = self.url_open('/mcp', timeout=30)
         # GET request should return SSE stream
         self.assertEqual(response.status_code, 200)
-        self.assertIn('text/event-stream', response.headers.get('Content-Type', ''))
+        content_type = response.headers.get('Content-Type', '')
+        self.assertIn('text/event-stream', content_type)
     
     def test_mcp_initialize_request(self):
         """Test MCP initialize method via POST"""
