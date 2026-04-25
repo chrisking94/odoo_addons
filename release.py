@@ -84,21 +84,16 @@ def main():
     
     # 3. Update main branch version
     print(f"\n📋 Step 3: Updating main branch version to {new_version}")
+    version_updated = update_manifest_version(new_version)
     
-    # Check current version
-    import re
-    current_content = MANIFEST_PATH.read_text(encoding='utf-8')
-    match = re.search(r"'version':\s*'([^']+)'", current_content)
-    if match and match.group(1) == new_version:
-        print(f"⚠️ Version is already {new_version}, skipping update")
-    else:
-        update_manifest_version(new_version)
-        
+    if version_updated:
         # 4. Commit main branch
         print("\n📋 Step 4: Committing main branch")
         run_command(f"git add {MANIFEST_PATH}")
         run_command(f'git commit -m "Release version {new_version}"')
         run_command("git push origin main")
+    else:
+        print("⚠️ Main branch version unchanged, skipping commit")
     
     # 5. Merge to version branches and update versions
     for branch in VERSIONS:
@@ -147,11 +142,9 @@ def main():
         
         # Update version to Odoo version format
         print(f"→ Updating version to {odoo_version}")
-        update_manifest_version(odoo_version)
+        version_updated = update_manifest_version(odoo_version)
         
-        # Check if there are changes to commit
-        status = run_command("git status --porcelain")
-        if MANIFEST_PATH.name in status or '__manifest__' in status:
+        if version_updated:
             # Commit and push
             run_command(f"git add {MANIFEST_PATH}")
             run_command(f'git commit -m "Update version to {odoo_version} for Odoo {branch}"')
