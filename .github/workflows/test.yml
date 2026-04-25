@@ -61,14 +61,16 @@ jobs:
 
       - name: Create Odoo configuration
         run: |
+          WORKSPACE=$(pwd)
           cat > odoo.conf << EOF
           [options]
-          addons_path = /home/runner/work/odoo_addons/odoo_addons
+          addons_path = $WORKSPACE
           db_host = localhost
           db_port = 5432
           db_user = odoo
           db_password = odoo
           log_level = test
+          logfile = /tmp/odoo_test.log
           EOF
 
       - name: Run Odoo tests
@@ -90,7 +92,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: odoo-logs-${{ matrix.odoo-version }}
-          path: ~/.local/share/Odoo/log/*.log
+          path: |
+            /tmp/odoo_test.log
+            ~/.local/share/Odoo/log/*.log
           retention-days: 7
 
   lint:
