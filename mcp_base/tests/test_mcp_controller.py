@@ -187,7 +187,7 @@ class TestMCPIntegration(common.TransactionCase):
     
     def test_python_type_conversion_comprehensive(self):
         """Comprehensive test for type conversion"""
-        from ..decorators import _python_type_to_json_type
+        from ..decorators import python_type_to_json_type
         from typing import List, Dict
         
         test_cases = [
@@ -200,7 +200,7 @@ class TestMCPIntegration(common.TransactionCase):
         ]
         
         for py_type, expected in test_cases:
-            result = _python_type_to_json_type(py_type)
+            result = python_type_to_json_type(py_type)
             if isinstance(expected, dict):
                 self.assertEqual(result['type'], expected['type'])
             else:
