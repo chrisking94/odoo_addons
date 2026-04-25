@@ -134,9 +134,16 @@ def main():
         print(f"→ Updating version to {odoo_version}")
         update_manifest_version(odoo_version)
         
-        # Commit and push
-        run_command(f"git add {MANIFEST_PATH}")
-        run_command(f'git commit -m "Update version to {odoo_version} for Odoo {branch}"')
+        # Check if there are changes to commit
+        status = run_command("git status --porcelain")
+        if MANIFEST_PATH.name in status or '__manifest__' in status:
+            # Commit and push
+            run_command(f"git add {MANIFEST_PATH}")
+            run_command(f'git commit -m "Update version to {odoo_version} for Odoo {branch}"')
+            print(f"✅ Version committed")
+        else:
+            print(f"⚠️ No changes to commit (version already {odoo_version})")
+        
         run_command(f"git push origin {branch}")
         print(f"✅ Branch {branch} released successfully")
     
