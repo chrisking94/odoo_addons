@@ -50,9 +50,19 @@ def update_manifest_version(version):
     return True
 
 
-def get_odoo_version(branch):
-    """Get Odoo version from branch name"""
-    return f"{branch}.1.0.0"
+def get_odoo_version(branch, main_version):
+    """Get Odoo version from branch name and main version
+    
+    Example: branch='13.0', main_version='1.0.5' -> '13.0.1.0.5'
+    """
+    # Extract sub-version from main version (e.g., '1.0.5' -> '5')
+    parts = main_version.split('.')
+    if len(parts) >= 3:
+        sub_version = parts[-1]  # Last part is the patch/sub version
+    else:
+        sub_version = '0'
+    
+    return f"{branch}.1.0.{sub_version}"
 
 
 def main():
@@ -97,7 +107,7 @@ def main():
     
     # 5. Merge to version branches and update versions
     for branch in VERSIONS:
-        odoo_version = get_odoo_version(branch)
+        odoo_version = get_odoo_version(branch, new_version)
         print(f"\n{'='*60}")
         print(f"📋 Processing branch: {branch} (Odoo {odoo_version})")
         print('='*60)
@@ -168,7 +178,7 @@ def main():
     print(f"\n🎉 Version {new_version} released successfully!")
     print(f"\nReleased branches:")
     for branch in VERSIONS:
-        print(f"  - {branch}: {get_odoo_version(branch)}")
+        print(f"  - {branch}: {get_odoo_version(branch, new_version)}")
     print(f"  - main: {new_version}")
     print(f"\nCheck CI/CD status: https://github.com/chrisking94/odoo_addons/actions")
 
