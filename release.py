@@ -31,8 +31,14 @@ def update_manifest_version(version):
     """Update version in manifest file"""
     content = MANIFEST_PATH.read_text(encoding='utf-8')
     
-    # Replace version
+    # Check if version is already set
     import re
+    match = re.search(r"'version':\s*'([^']+)'", content)
+    if match and match.group(1) == version:
+        print(f"✅ Version is already {version}, no update needed")
+        return False
+    
+    # Replace version
     new_content = re.sub(
         r"'version':\s*'[^']+'",
         f"'version': '{version}'",
@@ -41,6 +47,7 @@ def update_manifest_version(version):
     
     MANIFEST_PATH.write_text(new_content, encoding='utf-8')
     print(f"✅ Version updated to: {version}")
+    return True
 
 
 def get_odoo_version(branch):
