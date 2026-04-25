@@ -79,6 +79,11 @@ jobs:
 
       - name: Run Odoo tests
         run: |
+          echo "Starting Odoo tests..."
+          echo "Working directory: $(pwd)"
+          echo "Odoo version: ${{ matrix.odoo-version }}"
+          echo ""
+          
           odoo -c odoo.conf \
                -i mcp_base \
                --test-enable \
@@ -87,17 +92,22 @@ jobs:
                --db_host=localhost \
                --db_port=5432 \
                --db_user=odoo \
-               --db_password=odoo
+               --db_password=odoo \
+               --log-level=debug 2>&1 | tee /tmp/odoo_output.log
+          
+          echo ""
+          echo "Test completed. Exit code: $?"
         env:
           PGPASSWORD: odoo
 
       - name: Upload test logs
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: odoo-logs-${{ matrix.odoo-version }}
           path: |
             /tmp/odoo_test.log
+            /tmp/odoo_output.log
             ~/.local/share/Odoo/log/*.log
           retention-days: 7
 
