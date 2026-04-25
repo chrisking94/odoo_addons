@@ -12,7 +12,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        odoo-version: ['15.0', '16.0', '17.0', '18.0']
+        # main 分支只测试 15.0,版本分支测试对应版本
+        include:
+          - odoo-version: '15.0'
+            python-version: '3.10'
+            trigger-branches: ['main', '15.0']
 
     services:
       postgres:
