@@ -7,33 +7,10 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  test-15:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # main 和 15.0 分支测试 Odoo 15.0
-          - odoo-version: '15.0'
-            python-version: '3.10'
-          # 16.0 分支测试 Odoo 16.0
-          - odoo-version: '16.0'
-            python-version: '3.10'
-          # 17.0 分支测试 Odoo 17.0
-          - odoo-version: '17.0'
-            python-version: '3.10'
-          # 18.0 分支测试 Odoo 18.0
-          - odoo-version: '18.0'
-            python-version: '3.12'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/15.0'
     
-    # 根据分支名称选择对应的测试版本
-    if: |
-      (github.ref == 'refs/heads/main' && matrix.odoo-version == '15.0') ||
-      (github.ref == 'refs/heads/15.0' && matrix.odoo-version == '15.0') ||
-      (github.ref == 'refs/heads/16.0' && matrix.odoo-version == '16.0') ||
-      (github.ref == 'refs/heads/17.0' && matrix.odoo-version == '17.0') ||
-      (github.ref == 'refs/heads/18.0' && matrix.odoo-version == '18.0')
-
     services:
       postgres:
         image: postgres:15
@@ -64,20 +41,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install wheel setuptools requests lxml_html_clean
 
-      - name: Install Odoo ${{ matrix.odoo-version }}
-        run: |
-          ODOO_VERSION=${{ matrix.odoo-version }}
-          
-          # Use official Odoo nightly builds for reliable installation
-          if [ "$ODOO_VERSION" = "15.0" ]; then
-            pip install https://nightly.odoo.com/15.0/nightly/src/odoo_15.0.latest.tar.gz
-          elif [ "$ODOO_VERSION" = "16.0" ]; then
-            pip install https://nightly.odoo.com/16.0/nightly/src/odoo_16.0.latest.tar.gz
-          elif [ "$ODOO_VERSION" = "17.0" ]; then
-            pip install https://nightly.odoo.com/17.0/nightly/src/odoo_17.0.latest.tar.gz
-          elif [ "$ODOO_VERSION" = "18.0" ]; then
-            pip install https://nightly.odoo.com/18.0/nightly/src/odoo_18.0.latest.tar.gz
-          fi
+      - name: Install Odoo 15.0
+        run: pip install https://nightly.odoo.com/15.0/nightly/src/odoo_15.0.latest.tar.gz
 
       - name: Create Odoo configuration
         run: |
@@ -95,24 +60,17 @@ jobs:
 
       - name: Run Odoo tests
         run: |
-          echo "Starting Odoo tests..."
-          echo "Working directory: $(pwd)"
-          echo "Odoo version: ${{ matrix.odoo-version }}"
-          echo ""
-          
+          echo "Starting Odoo 15.0 tests..."
           odoo -c odoo.conf \
                -i mcp_base \
                --test-enable \
                --stop-after-init \
-               -d test_mcp_${{ matrix.odoo-version }} \
+               -d test_mcp_15.0 \
                --db_host=localhost \
                --db_port=5432 \
                --db_user=odoo \
                --db_password=odoo \
                --log-level=debug 2>&1 | tee /tmp/odoo_output.log
-          
-          echo ""
-          echo "Test completed. Exit code: $?"
         env:
           PGPASSWORD: odoo
 
@@ -120,7 +78,241 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: odoo-logs-${{ matrix.odoo-version }}
+          name: odoo-logs-15.0
+          path: |
+            /tmp/odoo_test.log
+            /tmp/odoo_output.log
+            ~/.local/share/Odoo/log/*.log
+          retention-days: 7
+
+  test-16:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/16.0'
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: odoo
+          POSTGRES_PASSWORD: odoo
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install wheel setuptools requests lxml_html_clean
+
+      - name: Install Odoo 16.0
+        run: pip install https://nightly.odoo.com/16.0/nightly/src/odoo_16.0.latest.tar.gz
+
+      - name: Create Odoo configuration
+        run: |
+          WORKSPACE=$(pwd)
+          cat > odoo.conf << EOF
+          [options]
+          addons_path = $WORKSPACE
+          db_host = localhost
+          db_port = 5432
+          db_user = odoo
+          db_password = odoo
+          log_level = test
+          logfile = /tmp/odoo_test.log
+          EOF
+
+      - name: Run Odoo tests
+        run: |
+          echo "Starting Odoo 16.0 tests..."
+          odoo -c odoo.conf \
+               -i mcp_base \
+               --test-enable \
+               --stop-after-init \
+               -d test_mcp_16.0 \
+               --db_host=localhost \
+               --db_port=5432 \
+               --db_user=odoo \
+               --db_password=odoo \
+               --log-level=debug 2>&1 | tee /tmp/odoo_output.log
+        env:
+          PGPASSWORD: odoo
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: odoo-logs-16.0
+          path: |
+            /tmp/odoo_test.log
+            /tmp/odoo_output.log
+            ~/.local/share/Odoo/log/*.log
+          retention-days: 7
+
+  test-17:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/17.0'
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: odoo
+          POSTGRES_PASSWORD: odoo
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install wheel setuptools requests lxml_html_clean
+
+      - name: Install Odoo 17.0
+        run: pip install https://nightly.odoo.com/17.0/nightly/src/odoo_17.0.latest.tar.gz
+
+      - name: Create Odoo configuration
+        run: |
+          WORKSPACE=$(pwd)
+          cat > odoo.conf << EOF
+          [options]
+          addons_path = $WORKSPACE
+          db_host = localhost
+          db_port = 5432
+          db_user = odoo
+          db_password = odoo
+          log_level = test
+          logfile = /tmp/odoo_test.log
+          EOF
+
+      - name: Run Odoo tests
+        run: |
+          echo "Starting Odoo 17.0 tests..."
+          odoo -c odoo.conf \
+               -i mcp_base \
+               --test-enable \
+               --stop-after-init \
+               -d test_mcp_17.0 \
+               --db_host=localhost \
+               --db_port=5432 \
+               --db_user=odoo \
+               --db_password=odoo \
+               --log-level=debug 2>&1 | tee /tmp/odoo_output.log
+        env:
+          PGPASSWORD: odoo
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: odoo-logs-17.0
+          path: |
+            /tmp/odoo_test.log
+            /tmp/odoo_output.log
+            ~/.local/share/Odoo/log/*.log
+          retention-days: 7
+
+  test-18:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/18.0'
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: odoo
+          POSTGRES_PASSWORD: odoo
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install wheel setuptools requests lxml_html_clean
+
+      - name: Install Odoo 18.0
+        run: pip install https://nightly.odoo.com/18.0/nightly/src/odoo_18.0.latest.tar.gz
+
+      - name: Create Odoo configuration
+        run: |
+          WORKSPACE=$(pwd)
+          cat > odoo.conf << EOF
+          [options]
+          addons_path = $WORKSPACE
+          db_host = localhost
+          db_port = 5432
+          db_user = odoo
+          db_password = odoo
+          log_level = test
+          logfile = /tmp/odoo_test.log
+          EOF
+
+      - name: Run Odoo tests
+        run: |
+          echo "Starting Odoo 18.0 tests..."
+          odoo -c odoo.conf \
+               -i mcp_base \
+               --test-enable \
+               --stop-after-init \
+               -d test_mcp_18.0 \
+               --db_host=localhost \
+               --db_port=5432 \
+               --db_user=odoo \
+               --db_password=odoo \
+               --log-level=debug 2>&1 | tee /tmp/odoo_output.log
+        env:
+          PGPASSWORD: odoo
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: odoo-logs-18.0
           path: |
             /tmp/odoo_test.log
             /tmp/odoo_output.log
