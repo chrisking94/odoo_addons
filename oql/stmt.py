@@ -5,7 +5,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from odoo import models
+from odoo import models, _
 
 from .clause import SelectClause, SetClause, WhereClause
 from .meta import OqlMeta
@@ -58,20 +58,17 @@ class UpdateStmt(Statement):
         model_name = self.from_._name
         acl = self.meta.acl[model_name]
 
-        # 1 Check model-level write access.
-        acl.check("write", True)
-
-        # 2 Search records to update.
+        # 1 Search records to update.
         if self.where:
             domain = self.where.rec_set.domain.domain
-            domain = acl.perm_records(domain, "write")  # Record level ACL
             where_model = self.from_.with_context(lang=env.user.lang if self.where.translate else None)
         else:
             domain = []
             where_model = self.from_
+        domain = acl.perm_records(domain, "write")  # Record level ACL
         recs = where_model.search(domain, limit=self.limit)
 
-        # 3 Build vals and write.
+        # 2 Build vals and write.
         if recs:
             self.set_clause.execute(recs)
 
@@ -89,16 +86,25 @@ class CreateStmt(Statement):
         model_name = self.from_._name
         acl = self.meta.acl[model_name]
 
-        # 1 Check model-level create access.
-        acl.check("create", True)
-
-        # 2 Build vals and create.
+        # 1 Build vals and create.
         vals = self.set_clause.to_vals(self.from_, self.meta)
         create_model = self.from_.with_context(lang=env.user.lang if self.set_clause.translate else None)
-        rec = create_model.create(vals)
+        recs = create_model.create(vals)
+
+        # 2 Check record level ACL
+        domain = acl.perm_records([("id", "in", recs.ids)], "create")
+        allowed_recs = self.from_.search(domain)
+        if len(allowed_recs) != len(recs):
+            if not isinstance(vals, dict):
+                vals = [vals]
+            id2val = dict(zip(recs.ids, vals, strict=True))
+            bad_ids = set(recs.ids) - set(allowed_recs.ids)
+            raise PermissionError(_("Some created records are out of permitted domain, values: %s") % (
+                [id2val[x] for x in bad_ids],
+            ))
 
         # 3 Return created record ids.
-        return [{"id": rid} for rid in rec.ids]
+        return [{"id": rid} for rid in recs.ids]
 
 
 class DeleteStmt(Statement):
@@ -112,25 +118,22 @@ class DeleteStmt(Statement):
         model_name = self.from_._name
         acl = self.meta.acl[model_name]
 
-        # 1 Check model-level unlink access.
-        acl.check("unlink", True)
-
-        # 2 Search records to delete.
+        # 1 Search records to delete.
         if self.where:
             domain = self.where.rec_set.domain.domain
-            domain = acl.perm_records(domain, "unlink")  # Record level ACL
             where_model = self.from_.with_context(lang=env.user.lang if self.where.translate else None)
         else:
             domain = []
             where_model = self.from_
+        domain = acl.perm_records(domain, "unlink")  # Record level ACL
         recs = where_model.search(domain, limit=self.limit)
 
-        # 3 Collect ids before deletion.
+        # 2 Collect ids before deletion.
         ids = recs.ids
 
-        # 4 Delete records.
+        # 3 Delete records.
         if recs:
             recs.unlink()
 
-        # 5 Return deleted record ids.
+        # 4 Return deleted record ids.
         return [{"id": rid} for rid in ids]

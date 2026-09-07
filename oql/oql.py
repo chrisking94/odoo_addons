@@ -26,6 +26,7 @@ _logger = logging.getLogger(__name__)
 
 @lark.v_args(inline=True)
 class OqlTransformer(lark.Transformer):
+    """Note that transformer only generate statement or clause, it won't execute query."""
 
     CNAME = str
     INT = int
@@ -50,9 +51,8 @@ class OqlTransformer(lark.Transformer):
         return self._meta
 
     def query(self, ctx_clause: Optional[Any], stmt: Statement):
-        self._check_perms()
         stmt.meta = self._meta
-        return stmt.execute()
+        return stmt
 
     def init_model(self, model_name: str, mode: ModelMode = "read"):
         """Initialize model for non-SELECT statements."""
@@ -236,7 +236,7 @@ class OqlTransformer(lark.Transformer):
     def cmd_set(self, ids: list):
         return Command.set(ids)
 
-    def _check_perms(self):
+    def check_perms(self):
         errs = []
         # 1. Field accesses.
         errs.extend(self._check_fas_perm(self._fas_read, "read"))
@@ -255,10 +255,9 @@ class OqlTransformer(lark.Transformer):
             for kind, units_kind in groupby(units_model, lambda x: x.kind):
                 units_kind: List[AclUnit]
                 if kind == UnitKind.FIELD:
-                    # self._extend_acl_errs(errs, mode, model, kind, units, mac.perm_fields(mode))
-                    pass
+                    self._extend_acl_errs(errs, mode, model, kind, units_kind, mac.perm_fields(mode))
                 elif kind == UnitKind.ALIAS:
-                    self._extend_acl_errs(errs, mode, model, kind, units, mac.perm_aliases(mode))
+                    self._extend_acl_errs(errs, mode, model, kind, units_kind, mac.perm_aliases(mode))
         return errs
 
     @classmethod
@@ -319,14 +318,17 @@ class OqlReader:
             raise ve.orig_exc.with_traceback(ve.orig_exc.__traceback__)
         return result
 
-    def query(self, s: str, transformer: lark.Transformer):
+    def query(self, s: str, transformer: OqlTransformer):
         """Full OQL query."""
-        return self.parse(s, transformer, start="start")
+        stmt: Statement = self.parse(s, transformer, start="start")
+        transformer.check_perms()
+        return stmt.execute()
 
     def search(self, recs: models.Model, oql_where: str, offset=0, limit=None, order=None, count=False):
         transformer = OqlTransformer(recs.env)
         transformer.init_model(recs._name)
         where: WhereClause = self.parse(f"WHERE TRANSLATE {oql_where}", transformer, start="where_clause")
+        transformer.check_perms()
         return where.execute(recs, transformer.meta, offset, limit, order, count)
 
     def read(self, recs: models.Model, fields: List[str] = None, load='_classic_read') -> List[Dict[str, Any]]:
@@ -345,6 +347,7 @@ class OqlReader:
         transformer = OqlTransformer(recs.env)
         transformer.init_model(recs._name)
         select: SelectClause = self.parse(f"SELECT TRANSLATE {fields_s}", transformer, start="select_clause")
+        transformer.check_perms()
 
         # 3 Read fields aligned with `recs` (mirrors `SelectStmt.execute` step 3).
         return select.execute(recs, transformer.meta, load)
