@@ -33,11 +33,8 @@ class SelectClause(Clause):
         env = recs.env
         model_name = recs._name  # noqa
         fas = self.fas
-        # 1 Ensure `id` is in result.
-        if all(f.as_ != "id" for f in fas):
-            fas = [FieldAccess(recs, ["id"], meta)] + fas
 
-        # 2 Read fields.
+        # Read fields.
         recs = recs.with_context(lang=env.user.lang if self.translate else None)
         rows = [{
             f.as_: val for f, val in zip_c(fas, val_row, strict=True)

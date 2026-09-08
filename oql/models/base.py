@@ -29,6 +29,8 @@ class OqlBase(models.AbstractModel):
         if isinstance(domain, str):
             try:
                 recs = reader.search(self, domain, offset, limit, order, count)
+            except AccessError:
+                raise
             except Exception as e:
                 _logger.debug(f"OQL query error: {e}", exc_info=True)
                 raise UserError(str(e))
