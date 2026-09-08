@@ -18,6 +18,7 @@ class UnitKind(IntEnum):
     FIELD = 2
     ALIAS = 3
     TERM = 4
+    METHOD = 5
 
 
 class AclUnit:

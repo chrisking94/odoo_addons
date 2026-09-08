@@ -7,7 +7,7 @@ from typing import List, Any, Dict, Tuple, Callable, Optional, Deque
 
 from odoo import _, models, fields
 
-from .base import IRecsReader, AclUnit, FieldMode
+from .base import IRecsReader, AclUnit, FieldMode, UnitKind
 from .field import FieldAccess
 
 _global: Dict[str, Tuple[Callable, bool]] = {}  # {name: (func, is_agg)}
@@ -39,7 +39,8 @@ class FuncCall(IRecsReader):
     """Arguments. `FieldAccess` for field arguments, plain values for literals.
     `count(*)` and `count()` are both parsed as empty args."""
 
-    def __init__(self, name: str, args: List[Any], is_agg: Optional[bool] = None):
+    def __init__(self, model: models.Model, name: str, args: List[Any], is_agg: Optional[bool] = None):
+        self.model = model
         self.name = name
         self.args = args
         self._as = name
@@ -90,10 +91,6 @@ class FuncCall(IRecsReader):
               "Implement `FuncCall.eval_bin` to support it.") % self.name)
 
     def read(self, recs, load='_classic_read') -> list:
-        # 0 Check permission
-        if self.name.startswith('_'):
-            if not recs.env.is_admin():
-                raise PermissionError(f"Only administrators can invoke private model method. Method: `{self.name}`.")
         # 1 Prepare func
         func = getattr(type(recs), self.name, None)
         if not callable(func):
@@ -137,6 +134,7 @@ class FuncCall(IRecsReader):
         return fas
 
     def gather_acl_units(self, res: List[AclUnit], mode: FieldMode):
+        res.append(AclUnit(self.model, self.name, UnitKind.METHOD, "invoke"))
         for arg in self.args:
             if isinstance(arg, IRecsReader):
                 arg.gather_acl_units(res, mode)

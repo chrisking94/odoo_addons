@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from odoo import models, _
+from odoo.exceptions import AccessError
 
 from .clause import SelectClause, SetClause, WhereClause, OrderbyClause
 from .meta import OqlMeta
@@ -95,13 +96,13 @@ class CreateStmt(Statement):
 
         # 2 Check record level ACL
         domain = acl.perm_records([("id", "in", recs.ids)], "create")
-        allowed_recs = self.from_.search(domain)
+        allowed_recs = self.from_.with_context(active_test=False).search(domain)
         if len(allowed_recs) != len(recs):
-            if not isinstance(vals, dict):
+            if isinstance(vals, dict):
                 vals = [vals]
             id2val = dict(zip(recs.ids, vals, strict=True))
             bad_ids = set(recs.ids) - set(allowed_recs.ids)
-            raise PermissionError(_("Some created records are out of permitted domain, values: %s") % (
+            raise AccessError(_("Some created records are out of permitted domain, values: %s") % (
                 [id2val[x] for x in bad_ids],
             ))
 

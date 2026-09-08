@@ -126,7 +126,7 @@ class OqlTransformer(lark.Transformer):
         return UnaExpr("bool", field)
 
     def func(self, agg, name: str, *args):
-        func = FuncCall(name, list(args), agg)
+        func = FuncCall(self.recs, name, list(args), agg)
         return func
 
     def assignment(self, fa: FieldAccess, opr, value):
@@ -309,7 +309,7 @@ class OqlReader:
             for mode, units_mode in groupby(units_kind, lambda x: x.mode):
                 allowed = acl.perm_models(mode)
                 self._extend_model_acl_errs(errs, mode, kind, units_mode, allowed)
-        # 2. Check fields, aliases.
+        # 2. Check fields, aliases, methods.
         for model, units_model in groupby(member_units, lambda x: x.model_name):
             model: str
             mac = acl[model]
@@ -320,6 +320,8 @@ class OqlReader:
                         self._extend_member_acl_errs(errs, mode, model, kind, units_mode, mac.perm_fields(mode))
                     elif kind == UnitKind.ALIAS:
                         self._extend_member_acl_errs(errs, mode, model, kind, units_mode, mac.perm_aliases(mode))
+                    elif kind == UnitKind.METHOD:
+                        self._extend_member_acl_errs(errs, mode, model, kind, units_mode, mac.perm_methods(mode, [x.name for x in units_mode]))
                     else:
                         raise NotImplementedError(f"ACL unit kind `{kind}`")
         # 3. Report.
