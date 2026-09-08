@@ -258,8 +258,9 @@ class OqlReader:
             raise ve.orig_exc.with_traceback(ve.orig_exc.__traceback__)
         return result
 
-    def query(self, s: str, transformer: OqlTransformer):
+    def query(self, s: str, env: odoo.api.Environment):
         """Full OQL query."""
+        transformer = OqlTransformer(env)
         stmt: Statement = self.parse(s, transformer, start="start")
         self._check_perms(transformer.meta, stmt)
         return stmt.execute()
@@ -269,7 +270,7 @@ class OqlReader:
         transformer.init_model(recs._name)
         where: WhereClause = self.parse(f"WHERE TRANSLATE {oql_where}", transformer, start="where_clause")
         self._check_perms(transformer.meta, where)
-        return where.execute(recs, transformer.meta, offset, limit, order, count)
+        return where.execute(recs.sudo(), transformer.meta, offset, limit, order, count)
 
     def read(self, recs: models.Model, fields: List[str] = None, load='_classic_read') -> List[Dict[str, Any]]:
         """
@@ -290,7 +291,7 @@ class OqlReader:
         self._check_perms(transformer.meta, select)
 
         # 3 Read fields aligned with `recs` (mirrors `SelectStmt.execute` step 3).
-        return select.execute(recs, transformer.meta, load)
+        return select.execute(recs.sudo(), transformer.meta, load)
 
     def _check_perms(self, meta: OqlMeta, obj: IAcl):
         acl = meta.acl

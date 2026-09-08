@@ -4,7 +4,7 @@ from typing import List, Optional, Union, override, Set
 from odoo import models, api, _
 from odoo.exceptions import UserError, AccessError
 
-from ..oql import reader, OqlTransformer, OqlDomain
+from ..oql import reader, OqlDomain
 
 _logger = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ class OqlBase(models.AbstractModel):
         """
         Execute an OQL query.
         """
-        return reader.query(oql, OqlTransformer(self.env))
+        return reader.query(oql, self.env)
 
     @api.model
     def oql_hint(self, partial_oql: str, cursor: int = None, limit=100, offset=0) -> dict:
