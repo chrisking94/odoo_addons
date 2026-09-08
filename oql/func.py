@@ -7,7 +7,7 @@ from typing import List, Any, Dict, Tuple, Callable, Optional, Deque
 
 from odoo import _, models, fields
 
-from .base import IRecsReader
+from .base import IRecsReader, AclUnit, FieldMode
 from .field import FieldAccess
 
 _global: Dict[str, Tuple[Callable, bool]] = {}  # {name: (func, is_agg)}
@@ -135,6 +135,11 @@ class FuncCall(IRecsReader):
                 elif isinstance(arg, FuncCall):
                     q.append(arg)
         return fas
+
+    def gather_acl_units(self, res: List[AclUnit], mode: FieldMode):
+        for arg in self.args:
+            if isinstance(arg, IRecsReader):
+                arg.gather_acl_units(res, mode)
 
     def __str__(self):
         return f"{type(self).__name__}({self.name}, args[{len(self.args)}])"

@@ -12,12 +12,9 @@ from odoo.exceptions import AccessError
 from .compatible import AND
 from .alias import AliasNode
 from .util import KeyPassingDefaultDict
+from .base import ModelMode, FieldMode
 
 _logger = logging.getLogger(__name__)
-
-
-ModelMode = Literal["read", "write", "create", "unlink"]
-FieldMode = Literal["read", "write"]
 
 
 class OqlAcl:
