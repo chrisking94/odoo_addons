@@ -3,16 +3,19 @@
 # @Description  :
 import copy
 import os.path
-from typing import Optional, Any, Set, Union
+from typing import Optional, Any, Set
 
 import odoo.fields
 from odoo import models, Command
+from odoo.exceptions import AccessError
 
 from .acl import ModelMode, FieldMode
-from .base import UnitKind, AclUnit
-from .clause import SelectClause, SetClause, WhereClause
+from .base import UnitKind, AclUnit, IAcl, IRecsReader
+from .chain import Chain, StepAttr, StepCall, StepHead, StepIndex
+from .clause import SelectClause, SetClause, WhereClause, OrderbyClause
 from .field import FieldAccess
 from .func import FuncCall
+from .expr import UnaExpr, BinExpr, AndExpr, OrExpr, Expr
 from .libs import lark
 from .libs.lark.exceptions import VisitError
 from .meta import OqlMeta
@@ -26,6 +29,7 @@ _logger = logging.getLogger(__name__)
 
 @lark.v_args(inline=True)
 class OqlTransformer(lark.Transformer):
+    """Note that transformer only generate statement or clause, it won't execute query."""
 
     CNAME = str
     INT = int
@@ -42,24 +46,19 @@ class OqlTransformer(lark.Transformer):
         self.model_name = None
         self.recs = None
         self._meta = OqlMeta(env)
-        self._fas_read: List[FieldAccess] = []
-        self._fas_write: List[FieldAccess] = []
 
     @property
     def meta(self):
         return self._meta
 
     def query(self, ctx_clause: Optional[Any], stmt: Statement):
-        self._check_perms()
         stmt.meta = self._meta
-        return stmt.execute()
+        return stmt
 
     def init_model(self, model_name: str, mode: ModelMode = "read"):
         """Initialize model for non-SELECT statements."""
-        acl = self._meta.acl
-        acl[model_name].check(mode, True)
         self.model_name = model_name
-        self.recs = self.env[model_name]
+        self.recs = self.env[model_name].sudo()  # SUDO-REMARK: ACL check will be performed at stage 2.
 
     def update_stmt(self, model: models.Model, set_clause: SetClause,
                     where: Optional[WhereClause] = None, limit=None):
@@ -101,21 +100,13 @@ class OqlTransformer(lark.Transformer):
         return self.recs
 
     def set_clause(self, translate: Optional[str], *assignments):
-        return SetClause(bool(translate), assignments)
+        return SetClause(bool(translate), assignments, self.env)
 
-    def where_clause(self, translate: Optional[str], rec_sets: RecordSets):
-        return WhereClause(bool(translate), rec_sets)
+    def where_clause(self, translate: Optional[str], expr: Expr):
+        return WhereClause(bool(translate), expr, self.recs)
 
     def orderby_clause(self, __, fields):
-        # Check.
-        _fields = self.recs._fields
-        for name, __ in fields:
-            f_meta: odoo.fields.Field = _fields.get(name)
-            if not f_meta:
-                raise Exception(_("Order-by field `%s` not found on model `%s`.") % (name, self.model_name))
-            if not f_meta.store:
-                raise Exception(_("Can't order by `%s`, it's not a stored field.") % (name, ))
-        return ','.join(f"{t[0]} {t[1]}" for t in fields)
+        return OrderbyClause(self.recs, fields)
 
     def offset_clause(self, num: int):
         return num
@@ -124,26 +115,50 @@ class OqlTransformer(lark.Transformer):
         return num
 
     def or_expr(self, left, right):
-        if isinstance(left, RecordSets) or isinstance(right, RecordSets):
-            return left | right
-        return left or right
+        return OrExpr(left, right)
 
     def and_expr(self, left, right):
-        if isinstance(left, RecordSets) or isinstance(right, RecordSets):
-            return left & right
-        return left and right
+        return AndExpr(left, right)
 
     def bin_expr(self, left: FieldAccess, opr: str, right):
-        opr = " ".join(opr.lower().split())  # Normalize spaces
-        return left.eval_bin(opr, right)
+        return BinExpr(left, opr, right)
 
     def dot_expr(self, field: FieldAccess):
-        return field.eval_una("bool")
+        return UnaExpr("bool", field)
 
     def func(self, agg, name: str, *args):
-        func = FuncCall(name, list(args), agg)
-        self._fas_read.extend(func.get_fas())
+        func = FuncCall(self.recs, name, list(args), agg)
         return func
+
+    def attr_step(self, name: str):
+        return StepAttr(name)
+
+    def index_step(self, num: int):
+        return StepIndex(num)
+
+    def call_step(self, *args):
+        return StepCall(list(args))
+
+    def sel_chain(self, agg, name: str, *steps):
+        """Fold a select chain: pure dotted fields -> `FieldAccess`, bare head
+        calls -> `FuncCall`, mixed attr/call/index chains -> `Chain`."""
+        if not steps or all(isinstance(s, StepAttr) for s in steps):
+            names = [name] + [s.name for s in steps]
+            return FieldAccess(self.recs, names, self._meta, is_agg=bool(agg))
+        if isinstance(steps[0], StepCall):
+            fcall = FuncCall(self.recs, name, steps[0].args, agg)
+            if len(steps) == 1:
+                return fcall
+            if fcall.is_agg:
+                raise Exception(_("Aggregate head call `%s(...)` yields one value, "
+                                  "it can't be followed by chain steps.") % name)
+            # e.g. `read(['id'])[0].id`: eval the head call, then chain on.
+            return Chain(self.recs, self._meta,
+                         [StepHead(fcall), *steps[1:]])
+        if agg:
+            raise Exception(_("Aggregate marker `@` can only prefix a plain "
+                              "field or a receiver-less head call."))
+        return Chain(self.recs, self._meta, [StepAttr(name), *steps])
 
     def assignment(self, fa: FieldAccess, opr, value):
         if opr != "=":
@@ -164,17 +179,15 @@ class OqlTransformer(lark.Transformer):
 
     def field(self, agg, names: Tuple[str]):
         fa = FieldAccess(self.recs, names, self._meta, is_agg=agg)
-        self._fas_read.append(fa)
         return fa
 
     def field_assi(self, names: Tuple[str]):
         """Field assignment."""
         fa = FieldAccess(self.recs, names, self._meta)
-        self._fas_write.append(fa)
         return fa
 
-    def field_as(self, field: Union[FieldAccess, FuncCall], as_: Optional[Tuple[str]]):
-        """Field or function call, with optional dot-style alias."""
+    def field_as(self, field: IRecsReader, as_: Optional[Tuple[str]]):
+        """Select item (`FieldAccess` / `FuncCall` / `Chain`), with optional alias."""
         if as_:
             field.as_ = '.'.join(as_)
         return field
@@ -236,55 +249,6 @@ class OqlTransformer(lark.Transformer):
     def cmd_set(self, ids: list):
         return Command.set(ids)
 
-    def _check_perms(self):
-        errs = []
-        # 1. Field accesses.
-        errs.extend(self._check_fas_perm(self._fas_read, "read"))
-        errs.extend(self._check_fas_perm(self._fas_write, "write"))
-        # 2. Report.
-        if errs:
-            raise Exception(_("Permissions denied:\n%s") % ('\n'.join(errs), ))
-
-    def _check_fas_perm(self, fas: List[FieldAccess], mode: FieldMode):
-        acl = self.meta.acl
-        units = [y for x in fas for y in x.chain_acl_units]
-        units = self._unique_acl_units(units)
-        errs = []
-        for model, units_model in groupby(units, lambda x: x.model):
-            mac = acl[model._name]
-            for kind, units_kind in groupby(units_model, lambda x: x.kind):
-                units_kind: List[AclUnit]
-                if kind == UnitKind.FIELD:
-                    # self._extend_acl_errs(errs, mode, model, kind, units, mac.perm_fields(mode))
-                    pass
-                elif kind == UnitKind.ALIAS:
-                    self._extend_acl_errs(errs, mode, model, kind, units, mac.perm_aliases(mode))
-        return errs
-
-    @classmethod
-    def _unique_acl_units(cls, units: List[AclUnit]) -> List[AclUnit]:
-        key2unit: Dict[Tuple[str, str, UnitKind], AclUnit] = {}
-        for unit in units:
-            key = unit.key
-            old = key2unit.get(key)
-            if old:
-                pass  # TODO: Merge
-            else:
-                key2unit[key] = copy.copy(unit)
-        return list(key2unit.values())
-
-    @classmethod
-    def _extend_acl_errs(cls, errs: List[str], mode: FieldMode, model: models.Model, kind: UnitKind,
-                         units: List[AclUnit], allowed: Set[str]):
-        denied_units = [x for x in units if x.name not in allowed]
-        if denied_units:
-            errs.append(_("%s `%s` %s: %s") % (
-                mode,
-                model._name,
-                kind.name,
-                ", ".join(x.name for x in units),
-            ))
-
     @classmethod
     def _type_check_bin(cls, left, opr, right, left_expr: str, right_expr: str):
         hint_expr = f"Expr: {left_expr} ({opr}) {right_expr}"
@@ -300,6 +264,12 @@ class OqlTransformer(lark.Transformer):
 
 
 class OqlReader:
+    """
+    3 stages query convention:
+        Stage 1: Parse query string into statement or clause
+        Stage 2: Check permission (This must be enforced or there will be security leak)
+        Stage 3: Execute queries
+    """
 
     START_RULES = ["start", "select_clause", "where_clause"]
     """Name of the rules that can be use as AST root."""
@@ -319,15 +289,19 @@ class OqlReader:
             raise ve.orig_exc.with_traceback(ve.orig_exc.__traceback__)
         return result
 
-    def query(self, s: str, transformer: lark.Transformer):
+    def query(self, s: str, env: odoo.api.Environment):
         """Full OQL query."""
-        return self.parse(s, transformer, start="start")
+        transformer = OqlTransformer(env)
+        stmt: Statement = self.parse(s, transformer, start="start")
+        self._check_perms(transformer.meta, stmt)
+        return stmt.execute()
 
     def search(self, recs: models.Model, oql_where: str, offset=0, limit=None, order=None, count=False):
         transformer = OqlTransformer(recs.env)
         transformer.init_model(recs._name)
         where: WhereClause = self.parse(f"WHERE TRANSLATE {oql_where}", transformer, start="where_clause")
-        return where.execute(recs, transformer.meta, offset, limit, order, count)
+        self._check_perms(transformer.meta, where)
+        return where.execute(recs.sudo(), transformer.meta, offset, limit, order, count)
 
     def read(self, recs: models.Model, fields: List[str] = None, load='_classic_read') -> List[Dict[str, Any]]:
         """
@@ -345,9 +319,82 @@ class OqlReader:
         transformer = OqlTransformer(recs.env)
         transformer.init_model(recs._name)
         select: SelectClause = self.parse(f"SELECT TRANSLATE {fields_s}", transformer, start="select_clause")
+        self._check_perms(transformer.meta, select)
 
         # 3 Read fields aligned with `recs` (mirrors `SelectStmt.execute` step 3).
-        return select.execute(recs, transformer.meta, load)
+        return select.execute(recs.sudo(), transformer.meta, load)
+
+    def _check_perms(self, meta: OqlMeta, obj: IAcl):
+        acl = meta.acl
+        units: List[AclUnit] = []
+        obj.gather_acl_units(units)
+        units = self._unique_acl_units(units)
+        errs = []
+        model_units, member_units = [], []
+        for unit in units:
+            if unit.kind == UnitKind.MODEL or unit.kind == UnitKind.TERM:
+                model_units.append(unit)
+            else:
+                member_units.append(unit)
+        # 1. Check models, terms.
+        for kind, units_kind in groupby(model_units, lambda x: x.kind):
+            for mode, units_mode in groupby(units_kind, lambda x: x.mode):
+                allowed = acl.perm_models(mode)
+                self._extend_model_acl_errs(errs, mode, kind, units_mode, allowed)
+        # 2. Check fields, aliases, methods.
+        for model, units_model in groupby(member_units, lambda x: x.model_name):
+            model: str
+            mac = acl[model]
+            for kind, units_kind in groupby(units_model, lambda x: x.kind):
+                for mode, units_mode in groupby(units_kind, lambda x: x.mode):
+                    units_mode: List[AclUnit]
+                    if kind == UnitKind.FIELD:
+                        self._extend_member_acl_errs(errs, mode, model, kind, units_mode, mac.perm_fields(mode))
+                    elif kind == UnitKind.ALIAS:
+                        self._extend_member_acl_errs(errs, mode, model, kind, units_mode, mac.perm_aliases(mode))
+                    elif kind == UnitKind.METHOD:
+                        self._extend_member_acl_errs(errs, mode, model, kind, units_mode, mac.perm_methods(mode, [x.name for x in units_mode]))
+                    else:
+                        raise NotImplementedError(f"ACL unit kind `{kind}`")
+        # 3. Report.
+        if errs:
+            raise AccessError(_("Permissions denied:\n%s") % ('\n'.join(errs), ))
+
+    @classmethod
+    def _unique_acl_units(cls, units: List[AclUnit]) -> List[AclUnit]:
+        key2unit: Dict[Tuple[str, str, UnitKind], AclUnit] = {}
+        for unit in units:
+            key = unit.key
+            old = key2unit.get(key)
+            if old:
+                pass  # TODO: Merge
+            else:
+                key2unit[key] = copy.copy(unit)
+        return list(key2unit.values())
+
+    @classmethod
+    def _extend_model_acl_errs(cls, errs: List[str], mode: FieldMode, kind: UnitKind,
+                               units: List[AclUnit], allowed: Set[str]):
+        denied_units = [x for x in units if x.model_name not in allowed]
+        denied_units = [x for x in denied_units if not x.loose or not x.loose()]
+        if denied_units:
+            errs.append(_("%s %s: %s") % (
+                mode,
+                kind.name,
+                ", ".join(x.name for x in denied_units),
+            ))
+
+    @classmethod
+    def _extend_member_acl_errs(cls, errs: List[str], mode: FieldMode, model: str, kind: UnitKind,
+                                units: List[AclUnit], allowed: Set[str]):
+        denied_units = [x for x in units if x.name not in allowed]
+        if denied_units:
+            errs.append(_("%s `%s` %s: %s") % (
+                mode,
+                model,
+                kind.name,
+                ", ".join(x.name for x in units),
+            ))
 
 
 reader = OqlReader()  # Global reader.

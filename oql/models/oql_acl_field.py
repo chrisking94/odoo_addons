@@ -77,6 +77,7 @@ class OqlAclField(models.Model):
         model_flush(self.env["ir.model.access"])
         model_flush(self, self._fields)  # noqa
 
+        # * Note: NULL `ir.model.access`.group_id means the rule is applied to all groups.
         sql = f"""
         SELECT b.name,
             BOOL_OR(e.id IS NOT NULL)                                AS has_override,
@@ -84,8 +85,8 @@ class OqlAclField(models.Model):
             COALESCE(BOOL_OR(e.id IS NULL AND d.perm_{mode} AND d.perm_oql_fac_default_{mode}), FALSE) AS default_allowed
         FROM ir_model a
             JOIN ir_model_fields b ON a.id = b.model_id
-             LEFT JOIN res_groups_users_rel c ON c.uid = %s
-            LEFT JOIN ir_model_access d ON (a.id = d.model_id AND c.gid = d.group_id AND d.active)
+            LEFT JOIN res_groups_users_rel c ON c.uid = %s
+            LEFT JOIN ir_model_access d ON (a.id = d.model_id AND d.active AND (d.group_id IS NULL OR c.gid = d.group_id))
             LEFT JOIN oql_acl_field e ON (d.id = e.mac_id AND b.id = e.field_id)
         WHERE a.model = %s
         GROUP BY b.id

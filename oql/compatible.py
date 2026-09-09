@@ -10,7 +10,7 @@ PYTHON_VERSION = sys.version_info[:2]  # (major, minor)
 # In Odoo 19+, @route(type='json') is deprecated in favor of @route(type='jsonrpc')
 jsonrpc = 'jsonrpc' if ODOO_VERSION >= 19 else 'json'
 
-__all__ = ["model_flush", "zip_c", "AND", "OR", "normalize_domain", "NEG2POS_OPR",
+__all__ = ["model_flush", "zip_c", "AND", "OR", "TRUE_LEAF", "normalize_domain", "NEG2POS_OPR",
            "res_users_data", "res_users_groups_id", "jsonrpc",
            "set_model_translation", "flush_translations", "is_api_model"]
 
@@ -21,10 +21,11 @@ if ODOO_VERSION >= 19:
 
     AND = Domain.AND
     OR = Domain.OR
+    TRUE_LEAF = (1, '=', 1)
     normalize_domain = Domain
     NEG2POS_OPR = Domain.NEGATIVE_OPERATORS
 else:
-    from odoo.fields import Domain, normalize_domain
+    from odoo.fields import Domain, TRUE_LEAF, normalize_domain
     from odoo.osv.expression import NEGATIVE_TERM_OPERATORS, TERM_OPERATORS_NEGATION
     NEG2POS_OPR = {x: TERM_OPERATORS_NEGATION[x] for x in NEGATIVE_TERM_OPERATORS}
 

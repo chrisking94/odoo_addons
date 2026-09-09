@@ -41,20 +41,29 @@ nul_expr: field "is"i ("null"i | "not"i "null"i)
 dot_expr: field
 
 // ------ Function ------
-func: [AGG] CNAME "(" _func_args ")"  // Function call, e.g. `lower(name)`, `action_confirm()``
+func: [AGG] CNAME "(" _func_args ")"  // Function call, e.g. `lower(name)`, `action_confirm()`
 _func_args: _func_arg ("," _func_arg)* [","] |
-_func_arg: _value | field | func | "*"  // `count(*)` equals `count()` (`*` is filtered from the tree)
+_func_arg: _value | field | func | "*"  // `*` == empty (`count(*)` = `count()`)
 
+// ------ Select item: chained access like Python ------
+// Steps `.attr` / method `(...)` / `[n]` may interleave: `tag_ids[0].name`,
+// `partner.mapped('name')`. A bare `name(...)` head binds to current records.
 fields: field_as ("," field_as)*  // Field list
-orderby_fields: orderby_field ("," orderby_field)*  // Order by field list
+field_as: sel_expr ["as"i dot_names]  // Optional dot-style alias
+?sel_expr: sel_chain
+sel_chain: [AGG] CNAME sel_step*  // `@` marks aggregate head calls / fields
+?sel_step: attr_step | call_step | index_step
+attr_step: "." CNAME
+call_step: "(" _func_args ")"
+index_step: "[" INT "]"  // Subscript, i.e. `__getitem__`
 
+// ------ Model / Field ------
 dot_names: CNAME ("." CNAME)*  // Dot-style names
 model: dot_names  // Dot-style model name
-field: [AGG] dot_names  // Dot-style field access
+field: [AGG] dot_names  // Dot-style field access (for WHERE / function args)
 field_assi: dot_names  // Dot-style field for assignment expression
-field_as: field ["as"i dot_names]  // Dot-style field with dot-style alias
-        | func ["as"i dot_names]  // Function call with alias, e.g. `count(tag_ids) as cnt`
 orderby_field: CNAME [ASC | DESC]  // Plain field with order direction
+orderby_fields: orderby_field ("," orderby_field)*  // Order by field list
 
 assignment: field_assi BIN_OPR _value
 assignment_simple: CNAME "=" _value

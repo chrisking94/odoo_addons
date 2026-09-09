@@ -3,7 +3,7 @@
 # @Description  :
 from typing import ClassVar, List, Iterable
 
-from .compatible import normalize_domain, AND, OR
+from .compatible import normalize_domain, AND, OR, TRUE_LEAF
 
 
 class Term(str):
@@ -42,7 +42,7 @@ class OqlDomain:
 
     @classmethod
     def all(cls, model: str):
-        return OqlDomain("ALL", model, [])
+        return OqlDomain("ALL", model, [TRUE_LEAF])
 
     @classmethod
     def normalize(cls, name: str, model: str, domain: list, term: Term):
@@ -59,7 +59,7 @@ class OqlDomain:
         return cls._logic(term_domains, OR)
 
     @classmethod
-    def _logic(cls, term_domains: Iterable["OqlDomain"], opr: callable):
+    def _logic(cls, term_domains: Iterable["OqlDomain"], opr):
         models = set()
         names: List[str] = []
         domains: List[list] = []
