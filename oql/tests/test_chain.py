@@ -3,7 +3,7 @@
 #   `attribute_value_ids[0].name`, `attribute_value_ids.mapped('name')`, `read(['id'])[0].id`.
 from odoo.tests import tagged, TransactionCase
 
-from ..chain import Chain
+from ..chain import Chain, StepAttr, StepCall, StepHead, StepIndex
 from ..field import FieldAccess
 from ..func import FuncCall
 from ..libs.lark.exceptions import UnexpectedToken
@@ -51,9 +51,13 @@ class TestOqlChain(TransactionCase):
         clause = self._transform_clause("select attribute_value_ids[0].name")
         chain = clause.fas[0]
         self.assertIsInstance(chain, Chain)
-        self.assertEqual(
-            [("attr", "attribute_value_ids"), ("index", 0), ("attr", "name")],
-            chain.steps)
+        self.assertEqual(3, len(chain.steps))
+        self.assertIsInstance(chain.steps[0], StepAttr)
+        self.assertEqual("attribute_value_ids", chain.steps[0].name)
+        self.assertIsInstance(chain.steps[1], StepIndex)
+        self.assertEqual(0, chain.steps[1].index)
+        self.assertIsInstance(chain.steps[2], StepAttr)
+        self.assertEqual("name", chain.steps[2].name)
         self.assertEqual("attribute_value_ids[0].name", chain.text)
         self.assertEqual(chain.text, chain.as_)
         self.assertEqual(chain.text, chain.path)
@@ -63,24 +67,32 @@ class TestOqlChain(TransactionCase):
         self.assertEqual("first_val", clause.fas[0].as_)
 
     def test_struct_method_chain(self):
-        """A method call keeps its literal args in the `K_CALL` step."""
+        """A method call keeps its literal args in the `StepCall` step."""
         clause = self._transform_clause("select attribute_value_ids.mapped('name') as names")
         chain = clause.fas[0]
         self.assertIsInstance(chain, Chain)
-        self.assertEqual(
-            [("attr", "attribute_value_ids"), ("attr", "mapped"), ("call", ["name"])],
-            chain.steps)
+        self.assertEqual(3, len(chain.steps))
+        self.assertIsInstance(chain.steps[0], StepAttr)
+        self.assertEqual("attribute_value_ids", chain.steps[0].name)
+        self.assertIsInstance(chain.steps[1], StepAttr)
+        self.assertEqual("mapped", chain.steps[1].name)
+        self.assertIsInstance(chain.steps[2], StepCall)
+        self.assertEqual(["name"], chain.steps[2].args)
 
     def test_struct_head_chain(self):
-        """`read(['id'])[0].id` carries the head call as a `("head", FuncCall)` step."""
+        """`read(['id'])[0].id` carries the head call as a `StepHead(FuncCall)` step."""
         clause = self._transform_clause("select read(['id'])[0].id")
         chain = clause.fas[0]
         self.assertIsInstance(chain, Chain)
-        kind, fcall = chain.steps[0]
-        self.assertEqual("head", kind)
-        self.assertIsInstance(fcall, FuncCall)
-        self.assertEqual("read", fcall.name)
-        self.assertEqual([("index", 0), ("attr", "id")], chain.steps[1:])
+        head = chain.steps[0]
+        self.assertIsInstance(head, StepHead)
+        self.assertIsInstance(head.func, FuncCall)
+        self.assertEqual("read", head.func.name)
+        self.assertEqual(2, len(chain.steps[1:]))
+        self.assertIsInstance(chain.steps[1], StepIndex)
+        self.assertEqual(0, chain.steps[1].index)
+        self.assertIsInstance(chain.steps[2], StepAttr)
+        self.assertEqual("id", chain.steps[2].name)
         self.assertEqual("read(...)[0].id", chain.text)
 
     def test_struct_pure_dotted_stays_field(self):

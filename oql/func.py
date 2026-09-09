@@ -99,6 +99,9 @@ class FuncCall(IRecsReader):
             raise NotImplementedError(
                 _("Function `%s(...)` not implemented. ") % self.name
             )
+        # Degrade to odoo built-in ACL. Since it's hard to get static ACL units
+        # from arbitrary method, we can't check permissions ahead with OQL ACL checker.
+        recs = recs.sudo(False)
         func: Callable
         # 2 Invoke
         args = self.args
@@ -119,20 +122,6 @@ class FuncCall(IRecsReader):
             # 2.3 Non-aggregate and invoke without args.
             return [func(rec) for rec in recs]
 
-    def get_fas(self) -> List[FieldAccess]:
-        """Get `FieldAccess` objects recursively."""
-        fas = []
-        q: Deque[FuncCall] = deque()
-        q.append(self)
-        while len(q):
-            node = q.popleft()
-            for arg in node.args:
-                if isinstance(arg, FieldAccess):
-                    fas.append(arg)
-                elif isinstance(arg, FuncCall):
-                    q.append(arg)
-        return fas
-
     def gather_acl_units(self, res: List[AclUnit], mode: FieldMode):
         res.append(AclUnit(self.model, self.name, UnitKind.METHOD, "invoke"))
         for arg in self.args:
@@ -145,6 +134,10 @@ class FuncCall(IRecsReader):
     def __repr__(self):
         return str(self)
 
+
+# =======================
+# OQL Built-in Functions
+# -----------------------
 
 def _func_lower(self: models.Model, val):
     return val.lower() if isinstance(val, str) else val
@@ -222,7 +215,7 @@ def _agg_column(self: models.Model, values):
 
 def _func_count(self: models.Model, field=None):
     if field:
-        return len([x for x in self.mapped(field) if x])
+        return len([x for x in self.mapped(field) if x is not False])
     return len(self)
 
 

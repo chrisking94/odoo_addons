@@ -12,7 +12,7 @@ from odoo.exceptions import AccessError
 
 from .acl import ModelMode, FieldMode
 from .base import UnitKind, AclUnit, IAcl, IRecsReader
-from .chain import Chain
+from .chain import Chain, StepAttr, StepCall, StepHead, StepIndex
 from .clause import SelectClause, SetClause, WhereClause, OrderbyClause
 from .field import FieldAccess
 from .func import FuncCall
@@ -131,33 +131,34 @@ class OqlTransformer(lark.Transformer):
         return func
 
     def attr_step(self, name: str):
-        return "attr", name
+        return StepAttr(name)
 
     def index_step(self, num: int):
-        return "index", num
+        return StepIndex(num)
 
     def call_step(self, *args):
-        return "call", list(args)
+        return StepCall(list(args))
 
     def sel_chain(self, agg, name: str, *steps):
         """Fold a select chain: pure dotted fields -> `FieldAccess`, bare head
         calls -> `FuncCall`, mixed attr/call/index chains -> `Chain`."""
-        if not steps or all(k == "attr" for k, *_ in steps):
-            names = [name] + [s[1] for s in steps]
+        if not steps or all(isinstance(s, StepAttr) for s in steps):
+            names = [name] + [s.name for s in steps]
             return FieldAccess(self.recs, names, self._meta, is_agg=bool(agg))
-        if steps[0][0] == "call":
-            fcall = FuncCall(self.recs, name, steps[0][1], agg)
+        if isinstance(steps[0], StepCall):
+            fcall = FuncCall(self.recs, name, steps[0].args, agg)
             if len(steps) == 1:
                 return fcall
             if fcall.is_agg:
                 raise Exception(_("Aggregate head call `%s(...)` yields one value, "
                                   "it can't be followed by chain steps.") % name)
             # e.g. `read(['id'])[0].id`: eval the head call, then chain on.
-            return Chain(self.recs, self._meta, [("head", fcall), *steps[1:]])
+            return Chain(self.recs, self._meta,
+                         [StepHead(fcall), *steps[1:]])
         if agg:
             raise Exception(_("Aggregate marker `@` can only prefix a plain "
                               "field or a receiver-less head call."))
-        return Chain(self.recs, self._meta, [("attr", name), *steps])
+        return Chain(self.recs, self._meta, [StepAttr(name), *steps])
 
     def assignment(self, fa: FieldAccess, opr, value):
         if opr != "=":
