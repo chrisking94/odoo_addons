@@ -393,7 +393,7 @@ class OqlReader:
                 mode,
                 model,
                 kind.name,
-                ", ".join(x.name for x in units),
+                ", ".join(x.name for x in denied_units),
             ))
 
 
