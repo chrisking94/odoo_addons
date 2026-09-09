@@ -127,7 +127,8 @@ def ensure_model_access(env, groups=('base.group_system',),
     allows the setUp fixtures to create/write records.
 
     IMPORTANT: do NOT grant access to `base.group_user` here. ACL-denial tests
-    (in `test_acl.py`) create a `test_user` in `base.group_user` and rely on it
+    (in `test_acl_common.py` / the split `test_acl_*` files) create a
+    `test_user` in `base.group_user` and rely on it
     having NO access, then grant/deny access precisely per test. Giving
     `base.group_user` access here would leak permissions (field-level ACL uses
     `BOOL_OR` over groups, so an extra permissive row would make "denied"

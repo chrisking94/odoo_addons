@@ -93,7 +93,14 @@ class FieldAccess(IRecsReader):
             if domains:
                 remains = names[i+1:]
                 for child_domain in domains:
-                    next_.append(FieldAccess(env[child_domain.model], remains, meta, child_domain, _is_root=False))
+                    term_fa = FieldAccess(env[child_domain.model], remains, meta, child_domain, _is_root=False)
+                    next_.append(term_fa)
+
+                    def acl_loose() -> bool:
+                        next_.remove(term_fa)
+                        return bool(next_)
+
+                    units.append(AclUnit(p_recs, name, UnitKind.TERM, "read", acl_loose))
                 break
             prefix = ".".join([tn(model), *plain_names])
             raise RuntimeError(_(f"Neither `%s(.%s)` is a field nor an alias nor a term. "
@@ -362,6 +369,17 @@ class FieldAccess(IRecsReader):
         else:
             flatted_fas.append(copy.copy(self))
         return flatted_fas
+
+    def gather_acl_units(self, res: List[AclUnit], mode: FieldMode):
+        # 1 Gather self.
+        units = self._acl_units
+        if mode == "write" and not self.next:  # Unit at path end for `write` mode.
+            res.append(units[-1].as_mode("write"))
+            units = units[:-1]
+        res.extend(x.as_mode("read") for x in units)
+        # 2 Gather next nodes.
+        for node in self.next:
+            node.gather_acl_units(res, mode)
 
     def check_perm(self, mode: FieldMode):
         acl = self.meta.acl
