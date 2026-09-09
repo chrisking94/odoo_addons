@@ -1,9 +1,9 @@
 # @Time         : 17:02 2026/5/9
 # @Author       : Chris
 # @Description  :
-from typing import Literal, Set
+from typing import Literal, FrozenSet
 
-from odoo import models, fields, api
+from odoo import models, fields, api, tools
 
 from ..compatible import model_flush
 
@@ -45,25 +45,43 @@ class OqlIrModelAccess(models.Model):
         self.env['oql.acl.alias'].clear_caches()
         return result
 
-    def perm_models(self, mode: ModelMode) -> Set[str]:
-        """Return model names that have the specified `mode` access."""
+    def perm_models(self, mode: ModelMode) -> FrozenSet[str]:
         env = self.env
         if env.su:
             # Superuser has access to all models
-            return set(env.registry.models.keys())
+            return frozenset(env.registry.models.keys())
+        return self._perm_models(mode)
 
-        # Query ir.model.access to find models with the specified permission
+    @tools.ormcache('frozenset(self.env.user.groups_id.ids)', 'mode')
+    def _perm_models(self, mode):
+        """Return model names that have the specified `mode` access.
+        :type mode: ModelMode
+        :rtype: FrozenSet[str]
+        """
+        env = self.env
+
         model_flush(env["ir.model.access"])
 
+        # Query ir.model.access to find models with the specified permission
         sql = f"""
-        SELECT DISTINCT c.model
-        FROM res_groups_users_rel a
-            JOIN ir_model_access b ON a.gid = b.group_id
-            JOIN ir_model c ON b.model_id = c.id
-        WHERE b.active AND a.uid = %s AND b.perm_{mode} = true
+        SELECT DISTINCT model
+        FROM (
+            SELECT b.model
+            FROM ir_model_access a
+                JOIN ir_model b on a.model_id = b.id
+            WHERE a.group_id IS NULL and a.active and a.perm_{mode}
+            
+            UNION ALL
+            
+            SELECT c.model
+            FROM res_groups_users_rel a
+                JOIN ir_model_access b ON a.gid = b.group_id
+                JOIN ir_model c ON b.model_id = c.id
+            WHERE a.uid = %s AND b.active AND b.perm_{mode}
+        ) as models
         """
         env.cr.execute(sql, (env.uid,))
-        model_names = {row[0] for row in env.cr.fetchall()}
+        model_names = frozenset(row[0] for row in env.cr.fetchall())
 
         return model_names
 
