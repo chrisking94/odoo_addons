@@ -350,7 +350,7 @@ class OqlReader:
             errs.append(_("%s %s: %s") % (
                 mode,
                 kind.name,
-                ", ".join(x.name for x in units),
+                ", ".join(x.name for x in denied_units),
             ))
 
     @classmethod
