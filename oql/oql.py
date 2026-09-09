@@ -4,14 +4,15 @@
 # @Description  :
 import copy
 import os.path
-from typing import Optional, Any, Set, Union
+from typing import Optional, Any, Set
 
 import odoo.fields
 from odoo import models, _, Command
 from odoo.exceptions import AccessError
 
 from .acl import ModelMode, FieldMode
-from .base import UnitKind, AclUnit, IAcl
+from .base import UnitKind, AclUnit, IAcl, IRecsReader
+from .chain import Chain
 from .clause import SelectClause, SetClause, WhereClause, OrderbyClause
 from .field import FieldAccess
 from .func import FuncCall
@@ -129,6 +130,35 @@ class OqlTransformer(lark.Transformer):
         func = FuncCall(self.recs, name, list(args), agg)
         return func
 
+    def attr_step(self, name: str):
+        return "attr", name
+
+    def index_step(self, num: int):
+        return "index", num
+
+    def call_step(self, *args):
+        return "call", list(args)
+
+    def sel_chain(self, agg, name: str, *steps):
+        """Fold a select chain: pure dotted fields -> `FieldAccess`, bare head
+        calls -> `FuncCall`, mixed attr/call/index chains -> `Chain`."""
+        if not steps or all(k == "attr" for k, *_ in steps):
+            names = [name] + [s[1] for s in steps]
+            return FieldAccess(self.recs, names, self._meta, is_agg=bool(agg))
+        if steps[0][0] == "call":
+            fcall = FuncCall(self.recs, name, steps[0][1], agg)
+            if len(steps) == 1:
+                return fcall
+            if fcall.is_agg:
+                raise Exception(_("Aggregate head call `%s(...)` yields one value, "
+                                  "it can't be followed by chain steps.") % name)
+            # e.g. `read(['id'])[0].id`: eval the head call, then chain on.
+            return Chain(self.recs, self._meta, [("head", fcall), *steps[1:]])
+        if agg:
+            raise Exception(_("Aggregate marker `@` can only prefix a plain "
+                              "field or a receiver-less head call."))
+        return Chain(self.recs, self._meta, [("attr", name), *steps])
+
     def assignment(self, fa: FieldAccess, opr, value):
         if opr != "=":
             raise Exception(f"Assignment operator must be `=`, got `{opr}`")
@@ -155,8 +185,8 @@ class OqlTransformer(lark.Transformer):
         fa = FieldAccess(self.recs, names, self._meta)
         return fa
 
-    def field_as(self, field: Union[FieldAccess, FuncCall], as_: Optional[Tuple[str]]):
-        """Field or function call, with optional dot-style alias."""
+    def field_as(self, field: IRecsReader, as_: Optional[Tuple[str]]):
+        """Select item (`FieldAccess` / `FuncCall` / `Chain`), with optional alias."""
         if as_:
             field.as_ = '.'.join(as_)
         return field

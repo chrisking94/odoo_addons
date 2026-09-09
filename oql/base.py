@@ -69,6 +69,11 @@ class IRecsReader(ABC):
         """Alias name that will be used as key in reading result."""
         pass
 
+    @as_.setter
+    @abstractmethod
+    def as_(self, value):
+        pass
+
     @abstractmethod
     def read(self, recs, load='_classic_read') -> List[Dict[str, Any]]:
         pass
