@@ -50,10 +50,11 @@ class OqlAclAlias(models.Model):
         model_flush(self.env["ir.model.access"])
         model_flush(self, self._fields)  # noqa
 
+        # * Note: NULL `ir.model.access`.group_id means the rule is applied to all groups.
         sql = f"""
         SELECT d.alias
         FROM res_groups_users_rel a
-            JOIN ir_model_access b ON a.gid = b.group_id
+            JOIN ir_model_access b ON (b.active AND (b.group_id IS NULL OR a.gid = b.group_id))
             JOIN ir_model c ON b.model_id = c.id
             JOIN oql_alias_line d ON b.model_id = d.model_id
             LEFT JOIN oql_acl_alias e ON (b.id = e.mac_id AND d.id = e.alias_id)

@@ -3,6 +3,7 @@
 # @Author       : Chris
 # @Description  : Test cases for the OQL `function` grammar (SELECT-only, e.g. `lower(name)`, `count() as cnt`).
 from odoo import fields
+from odoo.exceptions import AccessError
 from odoo.tests import tagged, TransactionCase
 
 from ..compatible import res_users_data
@@ -161,7 +162,7 @@ class TestOqlFunc(TransactionCase):
         ensure_model_access(self.env, groups=("base.group_system", "base.group_user"))
         user_env = self._user_env()
         self.assertFalse(user_env.is_admin())
-        with self.assertRaisesRegex(PermissionError, "administrators"):
+        with self.assertRaisesRegex(AccessError, "invoke.*_compute_name"):
             user_env["test.oql.product"].oql(oql_str)
 
     # ------------------------------------------------------------------
