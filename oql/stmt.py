@@ -4,16 +4,18 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from odoo import models
+from odoo import models, _
+from odoo.exceptions import AccessError
 
-from .clause import SelectClause, SetClause, WhereClause
+from .clause import SelectClause, SetClause, WhereClause, OrderbyClause
 from .meta import OqlMeta
 from .recs import *
+from .base import IAcl, AclUnit, UnitKind
 
 _logger = logging.getLogger(__name__)
 
 
-class Statement(ABC):
+class Statement(IAcl, ABC):
     meta: OqlMeta  # Injected by transformer.
 
     """OQL Statement"""
@@ -23,25 +25,31 @@ class Statement(ABC):
 
 
 class SelectStmt(Statement):
-    def __init__(self, from_: models.Model, select: SelectClause, where: Optional[WhereClause], orderby, limit, offset):
+    def __init__(self, from_: models.Model, select: SelectClause, where: Optional[WhereClause],
+                 orderby: Optional[OrderbyClause], limit, offset):
         self.from_ = from_
         self.select = select
-        self.where = where
-        self.orderby = orderby
+        self.where = where or WhereClause.all(from_)
+        self.orderby = orderby or OrderbyClause.empty(from_)
         self.limit = limit
         self.offset = offset
 
     def execute(self):
         # 1 Search records.
-        if self.where:
-            filtered_recs = self.where.execute(self.from_, self.meta, self.offset, self.limit, self.orderby)
-        else:
-            filtered_recs = self.from_.search([], self.offset, self.limit, self.orderby)
+        orderby = self.orderby.execute()
+        recs = self.where.execute(self.from_, self.meta, self.offset, self.limit, orderby)
 
         # 2 Read fields.
-        rows = self.select.execute(filtered_recs, self.meta)
+        rows = self.select.execute(recs, self.meta)
 
         return rows
+
+    def gather_acl_units(self, res: List[AclUnit]):
+        res.append(AclUnit(self.from_, self.from_._name, UnitKind.MODEL, "read"))
+        self.select.gather_acl_units(res)
+        self.where.gather_acl_units(res)
+        if self.orderby:
+            self.orderby.gather_acl_units(res)
 
 
 class UpdateStmt(Statement):
@@ -49,33 +57,25 @@ class UpdateStmt(Statement):
                  where: Optional[WhereClause] = None, limit=None):
         self.from_ = from_
         self.set_clause = set_clause
-        self.where = where
+        self.where = where or WhereClause.all(from_)
         self.limit = limit
 
     def execute(self):
-        env = self.from_.env
-        model_name = self.from_._name
-        acl = self.meta.acl[model_name]
+        # 1 Search records to update.
+        recs = self.where.execute(self.from_, self.meta, 0, self.limit, None, mode="write")
 
-        # 1 Check model-level write access.
-        acl.check("write", True)
-
-        # 2 Search records to update.
-        if self.where:
-            domain = self.where.rec_set.domain.domain
-            domain = acl.perm_records(domain, "write")  # Record level ACL
-            where_model = self.from_.with_context(lang=env.user.lang if self.where.translate else None)
-        else:
-            domain = []
-            where_model = self.from_
-        recs = where_model.search(domain, limit=self.limit)
-
-        # 3 Build vals and write.
+        # 2 Build vals and write.
         if recs:
             self.set_clause.execute(recs)
 
         # 4 Return updated record ids.
         return [{"id": rid} for rid in recs.ids]
+
+    def gather_acl_units(self, res: List[AclUnit]):
+        res.append(AclUnit(self.from_, self.from_._name, UnitKind.MODEL, "write"))
+        self.set_clause.gather_acl_units(res)
+        if self.where:
+            self.where.gather_acl_units(res)
 
 
 class CreateStmt(Statement):
@@ -88,48 +88,51 @@ class CreateStmt(Statement):
         model_name = self.from_._name
         acl = self.meta.acl[model_name]
 
-        # 1 Check model-level create access.
-        acl.check("create", True)
-
-        # 2 Build vals and create.
+        # 1 Build vals and create.
         vals = self.set_clause.to_vals(self.from_, self.meta)
         create_model = self.from_.with_context(lang=env.user.lang if self.set_clause.translate else None)
-        rec = create_model.create(vals)
+        recs = create_model.create(vals)
+
+        # 2 Check record level ACL
+        domain = acl.perm_records([("id", "in", recs.ids)], "create")
+        allowed_recs = self.from_.with_context(active_test=False).search(domain)
+        if len(allowed_recs) != len(recs):
+            if isinstance(vals, dict):
+                vals = [vals]
+            id2val = dict(zip(recs.ids, vals, strict=True))
+            bad_ids = set(recs.ids) - set(allowed_recs.ids)
+            raise AccessError(_("Some created records are out of permitted domain, values: %s") % (
+                [id2val[x] for x in bad_ids],
+            ))
 
         # 3 Return created record ids.
-        return [{"id": rid} for rid in rec.ids]
+        return [{"id": rid} for rid in recs.ids]
+
+    def gather_acl_units(self, res: List[AclUnit]):
+        res.append(AclUnit(self.from_, self.from_._name, UnitKind.MODEL, "create"))
+        self.set_clause.gather_acl_units(res)
 
 
 class DeleteStmt(Statement):
     def __init__(self, from_: models.Model, where: Optional[WhereClause] = None, limit=None):
         self.from_ = from_
-        self.where = where
+        self.where = where or WhereClause.all(from_)
         self.limit = limit
 
     def execute(self):
-        env = self.from_.env
-        model_name = self.from_._name
-        acl = self.meta.acl[model_name]
+        # 1 Search for records to delete.
+        recs = self.where.execute(self.from_, self.meta, 0, self.limit, None, mode="unlink")
 
-        # 1 Check model-level unlink access.
-        acl.check("unlink", True)
-
-        # 2 Search records to delete.
-        if self.where:
-            domain = self.where.rec_set.domain.domain
-            domain = acl.perm_records(domain, "unlink")  # Record level ACL
-            where_model = self.from_.with_context(lang=env.user.lang if self.where.translate else None)
-        else:
-            domain = []
-            where_model = self.from_
-        recs = where_model.search(domain, limit=self.limit)
-
-        # 3 Collect ids before deletion.
+        # 2 Collect ids before deletion.
         ids = recs.ids
 
-        # 4 Delete records.
+        # 3 Delete records.
         if recs:
             recs.unlink()
 
-        # 5 Return deleted record ids.
+        # 4 Return deleted record ids.
         return [{"id": rid} for rid in ids]
+
+    def gather_acl_units(self, res: List[AclUnit]):
+        res.append(AclUnit(self.from_, self.from_._name, UnitKind.MODEL, "unlink"))
+        self.where.gather_acl_units(res)

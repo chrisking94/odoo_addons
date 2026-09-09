@@ -3,7 +3,7 @@
 # @Description  :
 import logging
 from collections import defaultdict
-from typing import Dict, Union, List, Set, Literal, Iterable, Tuple
+from typing import Dict, Union, List, Set, Literal, Iterable, Tuple, FrozenSet
 
 from odoo import models, _, fields
 from odoo.exceptions import AccessError
@@ -11,12 +11,9 @@ from odoo.exceptions import AccessError
 from .compatible import AND
 from .alias import AliasNode
 from .util import KeyPassingDefaultDict
+from .base import ModelMode, FieldMode
 
 _logger = logging.getLogger(__name__)
-
-
-ModelMode = Literal["read", "write", "create", "unlink"]
-FieldMode = Literal["read", "write"]
 
 
 class OqlAcl:
@@ -154,6 +151,16 @@ class OqlModelAcl:
         if perm_domain:
             domain = AND([domain, perm_domain])
         return domain
+
+    def perm_methods(self, mode: Literal["invoke"], method_names: Iterable[str]) -> FrozenSet[str]:
+        env = self.env
+        if env.is_admin():
+            return frozenset(method_names)
+        elif env.user and env.user._is_internal():  # noqa
+            return frozenset(x for x in method_names if not x.startswith("_"))
+        else:
+            return frozenset(x for x in method_names if x.startswith("action_") or x.startswith("button_"))
+
 
     def _perm_fields(self, mode: str) -> Set[str]:
         return self.env["oql.acl.field"].perm_fields(self.model_name, mode)

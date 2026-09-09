@@ -1,6 +1,6 @@
 from odoo import Command
 from odoo.tests import tagged, TransactionCase
-from ..oql import reader, OqlTransformer
+from ..oql import reader
 from ..compatible import set_model_translation, flush_translations
 from .test_model_defs import ensure_model_meta, ensure_model_access, post_test
 
@@ -109,7 +109,7 @@ class TestOql(TransactionCase):
                               "where tag_ids.name in ('Waterproof:GTX', 'Weather:Temperate') "
                               "  and spu_name ilike 'co' "
                               "  and Waterproof "
-                              "order by name asc", self._get_transformer())
+                              "order by name asc", self.env)
         self.assertIsNotNone(parsed)
 
     def test_simple_search(self):
@@ -472,23 +472,23 @@ class TestOql(TransactionCase):
         """Test TRANSLATE keyword parsing in various positions."""
         # SELECT TRANSLATE
         parsed = reader.query("from test.oql.product select translate tmpl_id.name where tag_ids",
-                              self._get_transformer())
+                              self.env)
         self.assertIsNotNone(parsed)
 
         # WHERE TRANSLATE
         parsed = reader.query("from test.oql.product select id where translate tag_ids",
-                              self._get_transformer())
+                              self.env)
         self.assertIsNotNone(parsed)
 
         # Both TRANSLATE
         parsed = reader.query(
             "from test.oql.product select translate tmpl_id.name where translate tag_ids",
-            self._get_transformer())
+            self.env)
         self.assertIsNotNone(parsed)
 
         # TRANSLATE with star
         parsed = reader.query("from test.oql.product select translate * where tag_ids",
-                              self._get_transformer())
+                              self.env)
         self.assertIsNotNone(parsed)
 
     @post_test("oql.translate")
@@ -809,6 +809,3 @@ class TestOql(TransactionCase):
         )
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0]['spu_name'], 'Verified')
-
-    def _get_transformer(self):
-        return OqlTransformer(self.env)
